@@ -44,7 +44,7 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/Xquik-dev/xquik-haystack#readme"
+Documentation = "https://docs.xquik.com/guides/haystack"
 Issues = "https://github.com/Xquik-dev/xquik-haystack/issues"
 Source = "https://github.com/Xquik-dev/xquik-haystack"
 

@@ -2,6 +2,8 @@
 
 Haystack web search components for retrieving public X/Twitter context through the Xquik REST API.
 
+Documentation: <https://docs.xquik.com/guides/haystack>
+
 This package is maintained by Xquik as a standalone Haystack integration. It follows the `haystack_integrations` namespace convention and exposes read-only components under:
 
 ```python
