@@ -1,0 +1,166 @@
+# SPDX-FileCopyrightText: 2026-present AUTHOR <your@email.com>
+#
+# SPDX-License-Identifier: Apache-2.0
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "example-haystack"  # TODO: Replace with your package name, e.g. "deepset-ai-haystack"
+dynamic = ["version"]
+description = "A custom Haystack component"  # TODO: Replace with your description
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+keywords = [
+    "haystack",
+    # TODO: Add relevant keywords for your integration
+]
+authors = [
+    # TODO: Replace with your name and email
+    { name = "AUTHOR", email = "your@email.com" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+    "haystack-ai",
+    # TODO: Add your integration-specific dependencies here
+]
+
+[project.urls]
+# TODO: Replace with your repository URL
+Documentation = "https://github.com/your-org/example-haystack#readme"
+Issues = "https://github.com/your-org/example-haystack/issues"
+Source = "https://github.com/your-org/example-haystack"
+
+[tool.hatch.version]
+source = "vcs"
+tag-pattern = "v(?P<version>.*)"
+
+[tool.hatch.version.raw-options]
+git_describe_command = 'git describe --tags --match="v[0-9]*"'
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/haystack_integrations"]
+
+[tool.hatch.envs.default]
+installer = "uv"
+dependencies = ["ruff"]
+
+[tool.hatch.envs.default.scripts]
+fmt = "ruff check --fix {args:.} && ruff format {args:.}"
+fmt-check = "ruff check {args:.} && ruff format --check {args:.}"
+
+[tool.hatch.envs.test]
+dependencies = [
+    "pytest",
+    "pytest-cov",
+]
+
+[tool.hatch.envs.test.scripts]
+unit = 'pytest -m "not integration" {args:tests}'
+integration = 'pytest -m "integration" {args:tests}'
+all = "pytest {args:tests}"
+cov = "pytest --cov=haystack_integrations {args:tests}"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+  "A",
+  "ANN",
+  "ARG",
+  "B",
+  "C",
+  "D102",   # Missing docstring in public method
+  "D103",   # Missing docstring in public function
+  "D205",   # 1 blank line required between summary line and description
+  "D209",   # Closing triple quotes go to new line
+  "D213",   # summary lines must be positioned on the second physical line of the docstring
+  "D417",   # Missing argument descriptions in the docstring
+  "D419",   # Docstring is empty
+  "DTZ",
+  "E",
+  "EM",
+  "F",
+  "I",
+  "ICN",
+  "ISC",
+  "N",
+  "PLC",
+  "PLE",
+  "PLR",
+  "PLW",
+  "Q",
+  "RUF",
+  "S",
+  "T",
+  "TID",
+  "UP",
+  "W",
+  "YTT",
+]
+ignore = [
+    "B027",    # empty method in abstract base class
+    "S105",    # possible hardcoded password
+    "S106",    # possible hardcoded password
+    "S107",    # possible hardcoded password
+    "C901",    # too complex
+    "PLR0911", # too many return statements
+    "PLR0912", # too many branches
+    "PLR0913", # too many arguments
+    "PLR0915", # too many statements
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["haystack_integrations"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
+[tool.ruff.lint.per-file-ignores]
+# Tests can use magic values, assertions, and relative imports
+"tests/**/*" = ["D", "PLR2004", "S101", "TID252", "ANN"]
+# Examples can print their output and don't need type annotations
+"examples/**/*" = ["D", "T201", "ANN"]
+
+[tool.mypy]
+install_types = true
+non_interactive = true
+check_untyped_defs = true
+disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module = ["haystack.*"]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["haystack_integrations"]
+branch = true
+parallel = false
+
+[tool.coverage.report]
+omit = ["*/tests/*", "*/__init__.py"]
+show_missing = true
+exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+markers = [
+    "unit: unit tests",
+    "integration: integration tests",
+]
+addopts = ["--import-mode=importlib"]
