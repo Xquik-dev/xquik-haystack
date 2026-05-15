@@ -25,13 +25,11 @@ Both components:
 
 ## Installation
 
-PyPI package creation is pending. Until the first PyPI release is published, install the validated repository build:
+Install from PyPI:
 
 ```bash
-pip install "xquik-haystack @ git+https://github.com/Xquik-dev/xquik-haystack.git@49dc4b8dcdc1ce99311404499bb6965972a75e1f"
+pip install xquik-haystack
 ```
-
-After the first PyPI release is live, the package name will be `xquik-haystack`.
 
 ## Usage
 
@@ -90,13 +88,7 @@ Unit tests mock all Xquik HTTP calls. Integration tests can be added later behin
 
 ## Publishing
 
-The release workflow publishes to PyPI with trusted publishing when a GitHub release is published. Configure a PyPI pending publisher before creating the first release:
-
-- PyPI Project Name: `xquik-haystack`
-- Owner: `Xquik-dev`
-- Repository name: `xquik-haystack`
-- Workflow name: `release.yml`
-- Environment name: `pypi`
+The release workflow publishes to PyPI with trusted publishing when a GitHub release is published.
 
 After a first PyPI version is published, submit a listing PR to [`deepset-ai/haystack-integrations`](https://github.com/deepset-ai/haystack-integrations) as requested by the Haystack maintainers.
 
