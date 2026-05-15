@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2026-present AUTHOR <your@email.com>
+# SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -7,19 +7,23 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-name = "example-haystack"  # TODO: Replace with your package name, e.g. "deepset-ai-haystack"
+name = "xquik-haystack"
 dynamic = ["version"]
-description = "A custom Haystack component"  # TODO: Replace with your description
+description = "Haystack web search components for Xquik public X data"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
 keywords = [
     "haystack",
-    # TODO: Add relevant keywords for your integration
+    "xquik",
+    "twitter",
+    "x",
+    "websearch",
+    "social-media",
+    "retrieval",
 ]
 authors = [
-    # TODO: Replace with your name and email
-    { name = "AUTHOR", email = "your@email.com" },
+    { name = "Xquik", email = "support@xquik.com" },
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -36,14 +40,13 @@ classifiers = [
 ]
 dependencies = [
     "haystack-ai",
-    # TODO: Add your integration-specific dependencies here
+    "httpx>=0.24",
 ]
 
 [project.urls]
-# TODO: Replace with your repository URL
-Documentation = "https://github.com/your-org/example-haystack#readme"
-Issues = "https://github.com/your-org/example-haystack/issues"
-Source = "https://github.com/your-org/example-haystack"
+Documentation = "https://github.com/Xquik-dev/xquik-haystack#readme"
+Issues = "https://github.com/Xquik-dev/xquik-haystack/issues"
+Source = "https://github.com/Xquik-dev/xquik-haystack"
 
 [tool.hatch.version]
 source = "vcs"
@@ -66,6 +69,7 @@ fmt-check = "ruff check {args:.} && ruff format --check {args:.}"
 [tool.hatch.envs.test]
 dependencies = [
     "pytest",
+    "pytest-asyncio",
     "pytest-cov",
 ]
 
@@ -114,6 +118,8 @@ select = [
   "YTT",
 ]
 ignore = [
+    "ANN401",   # integrations accept provider JSON payloads
+    "B008",     # Haystack examples commonly use Secret defaults
     "B027",    # empty method in abstract base class
     "S105",    # possible hardcoded password
     "S106",    # possible hardcoded password

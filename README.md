@@ -1,80 +1,106 @@
-# Custom Component Template
+# Xquik Haystack
 
-A template repository for creating custom [Haystack](https://haystack.deepset.ai/) components and publishing them as standalone Python packages.
+Haystack web search components for retrieving public X/Twitter context through the Xquik REST API.
 
-For more details, see the Haystack documentation on [creating custom components](https://docs.haystack.deepset.ai/docs/custom-components) and [creating custom document stores](https://docs.haystack.deepset.ai/docs/creating-custom-document-stores).
+This package is maintained by Xquik as a standalone Haystack integration. It follows the `haystack_integrations` namespace convention and exposes read-only components under:
 
-## How to use this template
-
-1. Click **[Use this template](https://github.com/deepset-ai/custom-component/generate)** to create a new repository.
-
-2. **Rename the package directory** from `src/haystack_integrations/components/example/` to match your integration. See [Namespace convention](#namespace-convention) below for the correct path.
-
-3. **Update `pyproject.toml`** — search for `TODO` comments and replace:
-   - `name`: your package name, following the `<technology>-haystack` convention (e.g. `opensearch-haystack`)
-   - `description`, `authors`, `keywords`, `project.urls`
-   - `dependencies`: add your integration-specific dependencies
-   - `tool.hatch.version.raw-options`: if you renamed directories, the version path is still derived from git tags so no change is needed here
-
-4. **Add your component code** in the renamed directory and export your classes from `__init__.py`.
-
-5. **Add tests** in `tests/` — see the skeleton in `tests/test_example.py`.
-
-6. **Search for all `TODO` comments** across the project and address them.
-
-Check out the [video walkthrough](https://www.youtube.com/watch?v=SWC0QecAMcI) for a step-by-step guide on how to use this template.
-
-## Namespace convention
-
-Haystack integrations use the `haystack_integrations` namespace package. The directory structure under `src/` determines the import path for your component.
-
-**Components** (converters, embedders, generators, rankers, etc.) use:
+```python
+from haystack_integrations.components.websearch.xquik import XquikTweetSearch, XquikUserTweetsFetcher
 ```
-src/haystack_integrations/components/<type>/<name>/
-```
-Import path: `from haystack_integrations.components.<type>.<name> import MyComponent`
 
-Common component types: `converters`, `embedders`, `generators`, `rankers`, `retrievers`, `connectors`, `tools`, `websearch`
+## Components
 
-**Document stores** use a separate namespace:
+- `XquikTweetSearch`: calls `GET /x/tweets/search` and returns matching posts as Haystack `Document` objects.
+- `XquikUserTweetsFetcher`: calls `GET /x/users/{id}/tweets` and returns recent public posts for a user as Haystack `Document` objects.
+
+Both components:
+
+- read the API key from `XQUIK_API_KEY` by default
+- accept `haystack.utils.Secret` for explicit API key injection
+- send the `x-api-key` and `xquik-api-contract: 2026-04-29` headers
+- keep `base_url` configurable for tests and controlled deployments
+- return `documents`, `links`, `has_more`, and `next_cursor`
+
+## Installation
+
+Install the current repository build:
+
+```bash
+pip install git+https://github.com/Xquik-dev/xquik-haystack.git
 ```
-src/haystack_integrations/document_stores/<name>/
+
+After the first PyPI release:
+
+```bash
+pip install xquik-haystack
 ```
-Import path: `from haystack_integrations.document_stores.<name> import MyDocumentStore`
+
+## Usage
+
+### Tweet Search
+
+```python
+from haystack import Pipeline
+from haystack.utils import Secret
+from haystack_integrations.components.websearch.xquik import XquikTweetSearch
+
+search = XquikTweetSearch(api_key=Secret.from_env_var("XQUIK_API_KEY"), top_k=10)
+
+pipeline = Pipeline()
+pipeline.add_component("x_search", search)
+
+result = pipeline.run({"x_search": {"query": "haystack ai"}})
+documents = result["x_search"]["documents"]
+```
+
+### User Tweets
+
+```python
+from haystack.utils import Secret
+from haystack_integrations.components.websearch.xquik import XquikUserTweetsFetcher
+
+fetcher = XquikUserTweetsFetcher(api_key=Secret.from_env_var("XQUIK_API_KEY"))
+
+result = fetcher.run(user_id="xquikcom", include_replies=False)
+documents = result["documents"]
+```
+
+## Document Mapping
+
+Each tweet becomes a Haystack `Document`.
+
+- `Document.content`: tweet text, or an empty string when text is missing
+- `Document.meta["endpoint"]`: Xquik endpoint family used by the component
+- `Document.meta["id"]`: tweet ID when present
+- `Document.meta["url"]`: tweet URL when present
+- `Document.meta["created_at"]`: tweet creation time when present
+- `Document.meta["author"]`: author ID, username, display name, and verification status when present
+- `Document.meta` also includes available public metrics such as like, repost, reply, quote, view, and bookmark counts
 
 ## Development
 
 This project uses [Hatch](https://hatch.pypa.io/) for build and environment management.
 
 ```bash
-# Install Hatch
 pip install hatch
-
-# Format and lint
-hatch run fmt        # auto-fix
-hatch run fmt-check  # check only
-
-# Run tests
-hatch run test:unit         # unit tests only
-hatch run test:integration  # integration tests only
-hatch run test:all          # all tests
-hatch run test:cov          # with coverage
+hatch run fmt-check
+hatch run test:unit
+hatch build
 ```
 
-## Publishing to PyPI
+Unit tests mock all Xquik HTTP calls. Integration tests can be added later behind an `XQUIK_API_KEY` check.
 
-This template includes a GitHub Actions workflow that publishes your package to PyPI when you push a version tag.
+## Publishing
 
-1. **Add a `PYPI_API_TOKEN` secret** to your repository settings (Settings > Secrets and variables > Actions).
+The release workflow publishes to PyPI when a version tag is pushed and the repository has a `PYPI_API_TOKEN` Actions secret.
 
-2. **Create a version tag** and push it:
-   ```bash
-   git tag v0.1.0
-   git push origin v0.1.0
-   ```
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
 
-The release workflow will build and publish the package automatically.
+After a first PyPI version is published, submit a listing PR to [`deepset-ai/haystack-integrations`](https://github.com/deepset-ai/haystack-integrations) as requested by the Haystack maintainers.
 
 ## License
 
-`Apache-2.0` - See [LICENSE](LICENSE) for details.
+`xquik-haystack` is distributed under the terms of the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) license.
