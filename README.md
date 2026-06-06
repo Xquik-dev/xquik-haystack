@@ -90,7 +90,7 @@ Unit tests mock all Xquik HTTP calls. Integration tests can be added later behin
 
 The release workflow publishes to PyPI with trusted publishing when a GitHub release is published.
 
-After a first PyPI version is published, submit a listing PR to [`deepset-ai/haystack-integrations`](https://github.com/deepset-ai/haystack-integrations) as requested by the Haystack maintainers.
+Haystack integration-directory follow-up is tracked in [`deepset-ai/haystack-integrations#499`](https://github.com/deepset-ai/haystack-integrations/pull/499).
 
 ## License
 
