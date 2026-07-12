@@ -1,5 +1,8 @@
 # Xquik Haystack
 
+> **Xquik is an independent third-party service.** Not affiliated with X Corp.
+> "Twitter" and "X" are trademarks of X Corp.
+
 Haystack web search components for retrieving public X/Twitter context through the Xquik REST API.
 
 Documentation: <https://docs.xquik.com/guides/haystack>
