@@ -12,28 +12,53 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: pypi-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
 jobs:
-  release-on-pypi:
-    name: Publish on PyPI
-    runs-on: ubuntu-latest
-    environment: pypi
-    permissions:
-      contents: read
-      id-token: write
+  build:
+    name: Build distributions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Check out release tag
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
+          ref: ${{ github.event.release.tag_name }}
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: "3.13"
 
       - name: Install build tools
-        run: python -m pip install hatch twine
+        run: python -m pip install hatch==1.17.1 twine==6.2.0
+
+      - name: Validate release source
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          package_version=$(hatch version)
+          test "$RELEASE_TAG" = "v${package_version}" || {
+            echo "Release tag must match the package version."
+            exit 1
+          }
+          tag_commit=$(git rev-parse --verify "refs/tags/${RELEASE_TAG}^{commit}")
+          head_commit=$(git rev-parse HEAD)
+          main_commit=$(git rev-parse refs/remotes/origin/main)
+          test "$tag_commit" = "$head_commit" || {
+            echo "Release tag must resolve to the checked-out commit."
+            exit 1
+          }
+          test "$tag_commit" = "$main_commit" || {
+            echo "Release tag must resolve to the default branch tip."
+            exit 1
+          }
 
       - name: Lint
         run: hatch run fmt-check
@@ -47,5 +72,35 @@ jobs:
       - name: Check package metadata
         run: python -m twine check dist/*
 
+      - name: Upload distributions
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: distributions
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish distributions
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/project/xquik-haystack/
+    permissions:
+      contents: read
+      id-token: write # Exchange the release identity for a short-lived PyPI token.
+
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: distributions
+          path: dist
+
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
+        with:
+          attestations: true
+          packages-dir: dist/

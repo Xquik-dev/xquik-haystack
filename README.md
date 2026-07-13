@@ -1,11 +1,10 @@
-# Xquik Haystack
+# Retrieve X/Twitter context with Haystack
 
-> **Xquik is an independent third-party service.** Not affiliated with X Corp.
-> "Twitter" and "X" are trademarks of X Corp.
+> **Xquik is an independent third-party service. Not affiliated with X Corp. "Twitter" and "X" are trademarks of X Corp.**
 
 Haystack web search components for retrieving public X/Twitter context through the Xquik REST API.
 
-Documentation: <https://docs.xquik.com/guides/haystack>
+[Read the Xquik Haystack guide](https://docs.xquik.com/guides/haystack).
 
 This package is maintained by Xquik as a standalone Haystack integration. It follows the `haystack_integrations` namespace convention and exposes read-only components under:
 
@@ -13,7 +12,7 @@ This package is maintained by Xquik as a standalone Haystack integration. It fol
 from haystack_integrations.components.websearch.xquik import XquikTweetSearch, XquikUserTweetsFetcher
 ```
 
-## Components
+## Available components
 
 - `XquikTweetSearch`: calls `GET /x/tweets/search` and returns matching posts as Haystack `Document` objects.
 - `XquikUserTweetsFetcher`: calls `GET /x/users/{id}/tweets` and returns recent public posts for a user as Haystack `Document` objects.
@@ -26,7 +25,7 @@ Both components:
 - keep `base_url` configurable for tests and controlled deployments
 - return `documents`, `links`, `has_more`, and `next_cursor`
 
-## Installation
+## Install
 
 Install from PyPI:
 
@@ -34,9 +33,9 @@ Install from PyPI:
 pip install xquik-haystack
 ```
 
-## Usage
+## Search public X data
 
-### Tweet Search
+### Search posts
 
 ```python
 from haystack import Pipeline
@@ -52,7 +51,7 @@ result = pipeline.run({"x_search": {"query": "haystack ai"}})
 documents = result["x_search"]["documents"]
 ```
 
-### User Tweets
+### Fetch user posts
 
 ```python
 from haystack.utils import Secret
@@ -64,7 +63,7 @@ result = fetcher.run(user_id="example_user", include_replies=False)
 documents = result["documents"]
 ```
 
-## Document Mapping
+## Document mapping
 
 Each tweet becomes a Haystack `Document`.
 
