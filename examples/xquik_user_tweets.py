@@ -8,5 +8,5 @@ from haystack_integrations.components.websearch.xquik import XquikUserTweetsFetc
 
 fetcher = XquikUserTweetsFetcher(api_key=Secret.from_env_var("XQUIK_API_KEY"))
 
-result = fetcher.run(user_id="xquikcom")
+result = fetcher.run(user_id="example_user")
 print(result["documents"])

@@ -60,7 +60,7 @@ from haystack_integrations.components.websearch.xquik import XquikUserTweetsFetc
 
 fetcher = XquikUserTweetsFetcher(api_key=Secret.from_env_var("XQUIK_API_KEY"))
 
-result = fetcher.run(user_id="xquikcom", include_replies=False)
+result = fetcher.run(user_id="example_user", include_replies=False)
 documents = result["documents"]
 ```
 
@@ -93,7 +93,7 @@ Unit tests mock all Xquik HTTP calls. Integration tests can be added later behin
 
 The release workflow publishes to PyPI with trusted publishing when a GitHub release is published.
 
-Haystack integration-directory follow-up is tracked in [`deepset-ai/haystack-integrations#499`](https://github.com/deepset-ai/haystack-integrations/pull/499).
+Haystack merged the [Xquik integration-directory listing](https://github.com/deepset-ai/haystack-integrations/pull/499).
 
 ## License
 
