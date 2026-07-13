@@ -18,7 +18,7 @@ TWEETS_RESPONSE = {
             "id": "123",
             "text": "Haystack pipelines can retrieve public X context.",
             "createdAt": "2026-05-15T07:00:00Z",
-            "url": "https://x.com/xquikcom/status/123",
+            "url": "https://x.com/example/status/123",
             "lang": "en",
             "likeCount": 7,
             "retweetCount": 2,
@@ -130,7 +130,7 @@ class TestXquikTweetSearch:
             "name": "Xquik",
             "verified": True,
         }
-        assert result["links"] == ["https://x.com/xquikcom/status/123"]
+        assert result["links"] == ["https://x.com/example/status/123"]
         assert result["has_more"] is True
         assert result["next_cursor"] == "cursor-1"
 
@@ -183,7 +183,7 @@ class TestXquikTweetSearch:
             result = await search.run_async(query="haystack ai")
 
         assert len(result["documents"]) == 1
-        assert result["links"] == ["https://x.com/xquikcom/status/123"]
+        assert result["links"] == ["https://x.com/example/status/123"]
         assert result["has_more"] is True
 
     def test_run_handles_empty_and_missing_optional_fields(self) -> None:
@@ -251,4 +251,4 @@ class TestXquikUserTweetsFetcher:
             result = await fetcher.run_async(user_id="xquikcom")
 
         assert len(result["documents"]) == 1
-        assert result["links"] == ["https://x.com/xquikcom/status/123"]
+        assert result["links"] == ["https://x.com/example/status/123"]
