@@ -4,7 +4,6 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import httpx
 import pytest
 from haystack import Document
 from haystack.core.serialization import component_from_dict, component_to_dict
@@ -201,21 +200,31 @@ class TestXquikTweetSearch:
         assert result["has_more"] is False
         assert result["next_cursor"] is None
 
-    def test_run_raises_on_http_error(self) -> None:
+    @pytest.mark.parametrize("tweets", [{"unexpected": True}, [None]])
+    def test_run_ignores_invalid_tweet_collections(self, tweets: object) -> None:
+        search = XquikTweetSearch(api_key=Secret.from_token("xq_test"), top_k=None)
+
+        with patch(
+            "haystack_integrations.components.websearch.xquik.xquik_websearch.request_with_retry",
+            return_value=_mock_response({"tweets": tweets}),
+        ) as mock_request:
+            result = search.run(query="haystack")
+
+        assert "limit" not in mock_request.call_args.kwargs["params"]
+        assert result["documents"] == []
+        assert result["links"] == []
+
+    def test_run_propagates_response_error(self) -> None:
         search = XquikTweetSearch(api_key=Secret.from_token("xq_test"))
         response = _mock_response({})
-        response.raise_for_status.side_effect = httpx.HTTPStatusError(
-            "401 Unauthorized",
-            request=MagicMock(),
-            response=MagicMock(),
-        )
+        response.raise_for_status.side_effect = RuntimeError("401 Unauthorized")
 
         with (
             patch(
                 "haystack_integrations.components.websearch.xquik.xquik_websearch.request_with_retry",
                 return_value=response,
             ),
-            pytest.raises(httpx.HTTPStatusError),
+            pytest.raises(RuntimeError, match="401 Unauthorized"),
         ):
             search.run(query="haystack")
 

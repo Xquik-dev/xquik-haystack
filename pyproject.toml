@@ -40,7 +40,6 @@ classifiers = [
 ]
 dependencies = [
     "haystack-ai",
-    "httpx>=0.24",
 ]
 
 [project.urls]

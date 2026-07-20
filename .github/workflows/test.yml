@@ -41,8 +41,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Set up uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+
       - name: Install Hatch
-        run: pip install hatch==1.17.1
+        run: uv tool install hatch==1.17.1
 
       - name: Lint
         if: matrix.python-version == '3.10' && runner.os == 'Linux'
