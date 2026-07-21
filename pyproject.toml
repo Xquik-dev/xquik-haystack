@@ -57,6 +57,12 @@ git_describe_command = 'git describe --tags --match="v[0-9]*"'
 [tool.hatch.build.targets.wheel]
 packages = ["src/haystack_integrations"]
 
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/.clusterfuzzlite",
+    "/.github/workflows/fuzz.yml",
+]
+
 [tool.hatch.envs.default]
 installer = "uv"
 dependencies = ["ruff"]
