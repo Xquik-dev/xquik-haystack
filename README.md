@@ -2,6 +2,8 @@
 
 > **Xquik is an independent third-party service. Not affiliated with X Corp. "Twitter" and "X" are trademarks of X Corp.**
 
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13741/badge)](https://www.bestpractices.dev/projects/13741)
+
 Haystack web search components for retrieving public X/Twitter context through the Xquik REST API.
 
 [Read the Xquik Haystack guide](https://docs.xquik.com/guides/haystack).
