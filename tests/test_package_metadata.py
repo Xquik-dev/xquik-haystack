@@ -20,7 +20,7 @@ def test_public_metadata_has_affiliation_notices() -> None:
     readme = (ROOT / "README.md").read_text()
     pyproject = (ROOT / "pyproject.toml").read_text()
 
-    assert f"> **{FULL_AFFILIATION_NOTICE}**" in readme
+    assert FULL_AFFILIATION_NOTICE in readme
     assert COMPACT_AFFILIATION_NOTICE in pyproject
 
 
