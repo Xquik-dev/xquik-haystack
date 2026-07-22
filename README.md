@@ -1,31 +1,29 @@
-# Retrieve X/Twitter context with Haystack
-
-> **Xquik is an independent third-party service. Not affiliated with X Corp. "Twitter" and "X" are trademarks of X Corp.**
+# Retrieve X/Twitter Context with Haystack
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13741/badge)](https://www.bestpractices.dev/projects/13741)
 
-Haystack web search components for retrieving public X/Twitter context through the Xquik REST API.
+Retrieve public X/Twitter context through Xquik.
 
 [Read the Xquik Haystack guide](https://docs.xquik.com/guides/haystack).
 
-This package is maintained by Xquik as a standalone Haystack integration. It follows the `haystack_integrations` namespace convention and exposes read-only components under:
+Import both read-only components from the Haystack integration namespace:
 
 ```python
 from haystack_integrations.components.websearch.xquik import XquikTweetSearch, XquikUserTweetsFetcher
 ```
 
-## Available components
+## Available Components
 
 - `XquikTweetSearch`: calls `GET /x/tweets/search` and returns matching posts as Haystack `Document` objects.
 - `XquikUserTweetsFetcher`: calls `GET /x/users/{id}/tweets` and returns recent public posts for a user as Haystack `Document` objects.
 
 Both components:
 
-- read the API key from `XQUIK_API_KEY` by default
-- accept `haystack.utils.Secret` for explicit API key injection
-- send the `x-api-key` and `xquik-api-contract: 2026-04-29` headers
-- keep `base_url` configurable for tests and controlled deployments
-- return `documents`, `links`, `has_more`, and `next_cursor`
+- Read `XQUIK_API_KEY` by default.
+- Accept `haystack.utils.Secret` for explicit keys.
+- Send `x-api-key` and `xquik-api-contract: 2026-04-29`.
+- Allow a custom `base_url` for controlled deployments.
+- Return `documents`, `links`, `has_more`, and `next_cursor`.
 
 ## Install
 
@@ -35,9 +33,9 @@ Install from PyPI:
 pip install xquik-haystack
 ```
 
-## Search public X data
+## Search Public X Data
 
-### Search posts
+### Search Posts
 
 ```python
 from haystack import Pipeline
@@ -53,7 +51,7 @@ result = pipeline.run({"x_search": {"query": "haystack ai"}})
 documents = result["x_search"]["documents"]
 ```
 
-### Fetch user posts
+### Fetch User Posts
 
 ```python
 from haystack.utils import Secret
@@ -65,7 +63,7 @@ result = fetcher.run(user_id="example_user", include_replies=False)
 documents = result["documents"]
 ```
 
-## Document mapping
+## Document Mapping
 
 Each tweet becomes a Haystack `Document`.
 
@@ -88,14 +86,10 @@ hatch run test:unit
 hatch build
 ```
 
-Unit tests mock all Xquik HTTP calls. Integration tests can be added later behind an `XQUIK_API_KEY` check.
-
-## Publishing
-
-The release workflow publishes to PyPI with trusted publishing when a GitHub release is published.
-
-Haystack merged the [Xquik integration-directory listing](https://github.com/deepset-ai/haystack-integrations/pull/499).
+Unit tests mock all Xquik HTTP calls.
 
 ## License
 
 `xquik-haystack` is distributed under the terms of the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) license.
+
+Xquik is an independent third-party service. Not affiliated with X Corp. "Twitter" and "X" are trademarks of X Corp.
