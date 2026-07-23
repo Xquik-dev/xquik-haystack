@@ -1,4 +1,4 @@
-# Retrieve X/Twitter Context with Haystack
+# X/Twitter Tweet Search & User Timeline Retrieval for Haystack
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13741/badge)](https://www.bestpractices.dev/projects/13741)
 
@@ -6,16 +6,21 @@ Retrieve public X/Twitter context through Xquik.
 
 [Read the Xquik Haystack guide](https://docs.xquik.com/guides/haystack).
 
+## Choose a Component
+
+| Retrieval question | Haystack component | Xquik route | Output |
+| --- | --- | --- | --- |
+| How do I search tweets for RAG? | `XquikTweetSearch` | `GET /x/tweets/search` | Matching posts as `Document` objects |
+| How do I retrieve a user's timeline? | `XquikUserTweetsFetcher` | `GET /x/users/{id}/tweets` | Recent user posts as `Document` objects |
+
+This package exposes 2 read-only components.
+Use an [Xquik SDK](https://docs.xquik.com/sdks) for follower exports or posting.
+
 Import both read-only components from the Haystack integration namespace:
 
 ```python
 from haystack_integrations.components.websearch.xquik import XquikTweetSearch, XquikUserTweetsFetcher
 ```
-
-## Available Components
-
-- `XquikTweetSearch`: calls `GET /x/tweets/search` and returns matching posts as Haystack `Document` objects.
-- `XquikUserTweetsFetcher`: calls `GET /x/users/{id}/tweets` and returns recent public posts for a user as Haystack `Document` objects.
 
 Both components:
 
