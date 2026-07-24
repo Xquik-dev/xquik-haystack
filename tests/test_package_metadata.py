@@ -15,7 +15,9 @@ FULL_AFFILIATION_NOTICE = (
 COMPACT_AFFILIATION_NOTICE = "Not affiliated with X Corp."
 ACTION_REFERENCE = re.compile(r"[^@\s]+@[0-9a-f]{40}")
 COPYRIGHT_NOTICE = "# SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>"
+# REUSE-IgnoreStart
 LICENSE_NOTICE = "# SPDX-License-Identifier: Apache-2.0"
+# REUSE-IgnoreEnd
 SOURCE_SUFFIXES = frozenset({".py", ".sh", ".toml", ".yaml", ".yml"})
 SOURCE_NAMES = frozenset({"Dockerfile"})
 SOURCE_PATHS = (
@@ -74,5 +76,6 @@ def test_release_workflow_requires_exact_release_tag_on_main() -> None:
     assert "refs/tags/${RELEASE_TAG}^{commit}" in workflow
     assert "refs/remotes/origin/main" in workflow
     assert "default branch tip" in workflow
+    assert "run: twine check dist/*" in workflow
     assert workflow.count("id-token: write") == 1
     assert "attestations: true" in workflow
