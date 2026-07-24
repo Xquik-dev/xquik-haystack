@@ -65,7 +65,7 @@ exclude = [
 
 [tool.hatch.envs.default]
 installer = "uv"
-dependencies = ["ruff"]
+dependencies = ["ruff==0.16.0"]
 
 [tool.hatch.envs.default.scripts]
 fmt = "ruff check --fix {args:.} && ruff format {args:.}"

@@ -44,6 +44,7 @@ class XquikTweetSearch:
     def __init__(
         self,
         api_key: Secret = Secret.from_env_var("XQUIK_API_KEY"),
+        *,
         top_k: int | None = 20,
         query_type: QueryType = "Latest",
         base_url: str = XQUIK_API_URL,
@@ -81,6 +82,7 @@ class XquikTweetSearch:
     def run(
         self,
         query: str,
+        *,
         top_k: int | None = None,
         query_type: QueryType | None = None,
         cursor: str | None = None,
@@ -128,6 +130,7 @@ class XquikTweetSearch:
     async def run_async(
         self,
         query: str,
+        *,
         top_k: int | None = None,
         query_type: QueryType | None = None,
         cursor: str | None = None,
@@ -174,6 +177,7 @@ class XquikTweetSearch:
     def _build_params(
         self,
         query: str,
+        *,
         top_k: int | None,
         query_type: QueryType | None,
         cursor: str | None,
@@ -208,6 +212,7 @@ class XquikUserTweetsFetcher:
     def __init__(
         self,
         api_key: Secret = Secret.from_env_var("XQUIK_API_KEY"),
+        *,
         include_replies: bool = False,
         include_parent_tweet: bool = False,
         base_url: str = XQUIK_API_URL,
@@ -241,6 +246,7 @@ class XquikUserTweetsFetcher:
     def run(
         self,
         user_id: str,
+        *,
         cursor: str | None = None,
         include_replies: bool | None = None,
         include_parent_tweet: bool | None = None,
@@ -279,6 +285,7 @@ class XquikUserTweetsFetcher:
     async def run_async(
         self,
         user_id: str,
+        *,
         cursor: str | None = None,
         include_replies: bool | None = None,
         include_parent_tweet: bool | None = None,
@@ -315,6 +322,7 @@ class XquikUserTweetsFetcher:
 
     def _build_params(
         self,
+        *,
         cursor: str | None,
         include_replies: bool | None,
         include_parent_tweet: bool | None,

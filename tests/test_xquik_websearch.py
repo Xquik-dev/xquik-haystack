@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+from collections.abc import Callable
+from inspect import Parameter, signature
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -36,6 +38,30 @@ TWEETS_RESPONSE = {
     "has_next_page": True,
     "next_cursor": "cursor-1",
 }
+
+
+@pytest.mark.parametrize(
+    ("target", "positional_parameters"),
+    [
+        (XquikTweetSearch.__init__, ["self", "api_key"]),
+        (XquikTweetSearch.run, ["self", "query"]),
+        (XquikTweetSearch.run_async, ["self", "query"]),
+        (XquikUserTweetsFetcher.__init__, ["self", "api_key"]),
+        (XquikUserTweetsFetcher.run, ["self", "user_id"]),
+        (XquikUserTweetsFetcher.run_async, ["self", "user_id"]),
+    ],
+)
+def test_component_options_are_keyword_only(
+    target: Callable[..., object],
+    positional_parameters: list[str],
+) -> None:
+    actual = [
+        name
+        for name, parameter in signature(target).parameters.items()
+        if parameter.kind in {Parameter.POSITIONAL_ONLY, Parameter.POSITIONAL_OR_KEYWORD}
+    ]
+
+    assert actual == positional_parameters
 
 
 def _mock_response(payload: dict[str, object]) -> MagicMock:
