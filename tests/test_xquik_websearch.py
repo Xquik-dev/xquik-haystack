@@ -43,15 +43,33 @@ TWEETS_RESPONSE = {
 @pytest.mark.parametrize(
     ("target", "positional_parameters"),
     [
-        (XquikTweetSearch.__init__, ["self", "api_key"]),
-        (XquikTweetSearch.run, ["self", "query"]),
-        (XquikTweetSearch.run_async, ["self", "query"]),
-        (XquikUserTweetsFetcher.__init__, ["self", "api_key"]),
-        (XquikUserTweetsFetcher.run, ["self", "user_id"]),
-        (XquikUserTweetsFetcher.run_async, ["self", "user_id"]),
+        (
+            XquikTweetSearch.__init__,
+            ["self", "api_key", "top_k", "query_type", "base_url", "extra_params", "timeout", "max_retries"],
+        ),
+        (
+            XquikTweetSearch.run,
+            ["self", "query", "top_k", "query_type", "cursor", "since_time", "until_time"],
+        ),
+        (
+            XquikTweetSearch.run_async,
+            ["self", "query", "top_k", "query_type", "cursor", "since_time", "until_time"],
+        ),
+        (
+            XquikUserTweetsFetcher.__init__,
+            ["self", "api_key", "include_replies", "include_parent_tweet", "base_url", "timeout", "max_retries"],
+        ),
+        (
+            XquikUserTweetsFetcher.run,
+            ["self", "user_id", "cursor", "include_replies", "include_parent_tweet"],
+        ),
+        (
+            XquikUserTweetsFetcher.run_async,
+            ["self", "user_id", "cursor", "include_replies", "include_parent_tweet"],
+        ),
     ],
 )
-def test_component_options_are_keyword_only(
+def test_component_public_options_remain_positional(
     target: Callable[..., object],
     positional_parameters: list[str],
 ) -> None:
