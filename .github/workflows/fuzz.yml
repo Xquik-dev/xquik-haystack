@@ -14,11 +14,6 @@ on:
       - "pyproject.toml"
   pull_request:
     branches: [main]
-    paths:
-      - ".clusterfuzzlite/**"
-      - ".github/workflows/fuzz.yml"
-      - "src/haystack_integrations/components/websearch/xquik/**"
-      - "pyproject.toml"
   schedule:
     - cron: "19 5 * * 1"
 
