@@ -4,6 +4,8 @@
 
 Retrieve public X/Twitter context through Xquik.
 
+Choose these components when Haystack pipelines need tweet `Document` objects.
+
 [Read the Xquik Haystack guide](https://docs.xquik.com/guides/haystack).
 
 ## Choose a Component
@@ -92,6 +94,12 @@ hatch build
 ```
 
 Unit tests mock all Xquik HTTP calls.
+
+## Support & Project Policies
+
+- [Organization support policy](https://github.com/Xquik-dev/.github/blob/main/SUPPORT.md)
+- [Organization security policy](https://github.com/Xquik-dev/.github/blob/main/SECURITY.md)
+- [Contribution guide](https://github.com/Xquik-dev/.github/blob/main/CONTRIBUTING.md)
 
 ## License
 

@@ -65,7 +65,7 @@ exclude = [
 
 [tool.hatch.envs.default]
 installer = "uv"
-dependencies = ["ruff"]
+dependencies = ["ruff==0.16.0"]
 
 [tool.hatch.envs.default.scripts]
 fmt = "ruff check --fix {args:.} && ruff format {args:.}"
@@ -143,6 +143,8 @@ known-first-party = ["haystack_integrations"]
 ban-relative-imports = "parents"
 
 [tool.ruff.lint.per-file-ignores]
+# Released component signatures accept positional arguments for compatibility.
+"src/haystack_integrations/components/websearch/xquik/xquik_websearch.py" = ["PLR0917"]
 # Tests can use magic values, assertions, and relative imports
 "tests/**/*" = ["D", "PLR2004", "S101", "TID252", "ANN"]
 # Examples can print their output and don't need type annotations

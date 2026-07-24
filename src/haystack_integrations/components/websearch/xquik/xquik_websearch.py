@@ -174,6 +174,7 @@ class XquikTweetSearch:
     def _build_params(
         self,
         query: str,
+        *,
         top_k: int | None,
         query_type: QueryType | None,
         cursor: str | None,
@@ -315,6 +316,7 @@ class XquikUserTweetsFetcher:
 
     def _build_params(
         self,
+        *,
         cursor: str | None,
         include_replies: bool | None,
         include_parent_tweet: bool | None,
