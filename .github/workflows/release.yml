@@ -43,7 +43,7 @@ jobs:
       - name: Install build tools
         run: |
           uv tool install hatch==1.17.1
-          uv tool install twine==6.2.0
+          uv tool install twine==7.0.0
 
       - name: Validate release source
         env:
