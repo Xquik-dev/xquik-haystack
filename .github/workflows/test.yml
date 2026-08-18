@@ -45,7 +45,7 @@ jobs:
         uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
 
       - name: Install Hatch
-        run: uv tool install hatch==1.17.1
+        run: uv tool install hatch==1.18.0
 
       - name: Lint
         if: matrix.python-version == '3.10' && runner.os == 'Linux'
