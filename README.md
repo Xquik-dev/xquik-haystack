@@ -87,7 +87,7 @@ Each tweet becomes a Haystack `Document`.
 This project uses [Hatch](https://hatch.pypa.io/) for build and environment management.
 
 ```bash
-pip install hatch
+pip install hatch==1.18.0
 hatch run fmt-check
 hatch run test:unit
 hatch build
