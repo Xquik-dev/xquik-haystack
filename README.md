@@ -1,46 +1,42 @@
-# X/Twitter Tweet Search & User Timeline Retrieval for Haystack
+# Haystack Twitter Search & User Timeline Components
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13741/badge)](https://www.bestpractices.dev/projects/13741)
 
-Retrieve public X/Twitter context through Xquik.
-
-Choose these components when Haystack pipelines need tweet `Document` objects.
+Add Twitter search and public user timelines to Haystack RAG pipelines.
+Xquik returns each post as a Haystack `Document`.
 
 [Read the Xquik Haystack guide](https://docs.xquik.com/guides/haystack).
 
 ## Choose a Component
 
-| Retrieval question | Haystack component | Xquik route | Output |
+| Task | Haystack Component | Xquik Route | Output |
 | --- | --- | --- | --- |
-| How do I search tweets for RAG? | `XquikTweetSearch` | `GET /x/tweets/search` | Matching posts as `Document` objects |
-| How do I retrieve a user's timeline? | `XquikUserTweetsFetcher` | `GET /x/users/{id}/tweets` | Recent user posts as `Document` objects |
+| Search tweets for RAG | `XquikTweetSearch` | `GET /x/tweets/search` | Matching posts as `Document` objects |
+| Retrieve a user's timeline | `XquikUserTweetsFetcher` | `GET /x/users/{id}/tweets` | Recent user posts as `Document` objects |
 
-This package exposes 2 read-only components.
-Use an [Xquik SDK](https://docs.xquik.com/sdks) for follower exports or posting.
-
-Import both read-only components from the Haystack integration namespace:
+Import both read-only components from the Haystack integration namespace.
 
 ```python
 from haystack_integrations.components.websearch.xquik import XquikTweetSearch, XquikUserTweetsFetcher
 ```
 
-Both components:
+Each component:
 
-- Read `XQUIK_API_KEY` by default.
-- Accept `haystack.utils.Secret` for explicit keys.
-- Send `x-api-key` and `xquik-api-contract: 2026-04-29`.
-- Allow a custom `base_url` for controlled deployments.
-- Return `documents`, `links`, `has_more`, and `next_cursor`.
+- Reads `XQUIK_API_KEY` by default.
+- Accepts `haystack.utils.Secret` for explicit keys.
+- Sends `x-api-key` and `xquik-api-contract: 2026-04-29`.
+- Accepts a custom `base_url` for controlled deployments.
+- Returns `documents`, `links`, `has_more`, and `next_cursor`.
+
+Use an [Xquik SDK](https://docs.xquik.com/sdks) for follower exports or posting.
 
 ## Install
-
-Install from PyPI:
 
 ```bash
 pip install xquik-haystack
 ```
 
-## Search Public X Data
+## Build Haystack RAG With Twitter Search
 
 ### Search Posts
 
@@ -72,15 +68,15 @@ documents = result["documents"]
 
 ## Document Mapping
 
-Each tweet becomes a Haystack `Document`.
+Each tweet becomes a Haystack `Document` with this mapping.
 
 - `Document.content`: tweet text, or an empty string when text is missing
 - `Document.meta["endpoint"]`: Xquik endpoint family used by the component
 - `Document.meta["id"]`: tweet ID when present
 - `Document.meta["url"]`: tweet URL when present
-- `Document.meta["created_at"]`: tweet creation time when present
-- `Document.meta["author"]`: author ID, username, display name, and verification status when present
-- `Document.meta` also includes available public metrics such as like, repost, reply, quote, view, and bookmark counts
+- `Document.meta["created_at"]`: creation time when present
+- `Document.meta["author"]`: available author identity and verification data
+- `Document.meta`: available like, repost, reply, quote, view & bookmark counts
 
 ## Development
 

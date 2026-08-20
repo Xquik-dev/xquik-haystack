@@ -9,7 +9,7 @@ build-backend = "hatchling.build"
 [project]
 name = "xquik-haystack"
 dynamic = ["version"]
-description = "Haystack web search components for Xquik public X data. Not affiliated with X Corp."
+description = "Haystack RAG components for Twitter search and public user timelines. Not affiliated with X Corp."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
@@ -17,10 +17,10 @@ keywords = [
     "haystack",
     "xquik",
     "twitter",
-    "x",
-    "websearch",
-    "social-media",
-    "retrieval",
+    "twitter-search",
+    "twitter-api-alternative",
+    "rag",
+    "user-timeline",
 ]
 authors = [
     { name = "Xquik", email = "support@xquik.com" },

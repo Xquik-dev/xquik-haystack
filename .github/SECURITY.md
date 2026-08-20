@@ -4,7 +4,7 @@
 
 Security fixes target the latest published release.
 
-## Reporting A Vulnerability
+## Reporting a Vulnerability
 
 Report vulnerabilities privately through
 [support@xquik.com](mailto:support@xquik.com).
@@ -12,8 +12,8 @@ Report vulnerabilities privately through
 Do not open public issues for secrets, credential handling defects, private
 data exposure, or package supply-chain concerns.
 
-We aim to acknowledge reports within 3 business days. We will coordinate a
-disclosure timeline after confirming the issue.
+Maintainers acknowledge reports within 3 business days.
+Maintainers coordinate disclosure after confirming the issue.
 
 ## Scope
 

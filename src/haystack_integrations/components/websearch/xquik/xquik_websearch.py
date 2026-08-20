@@ -24,21 +24,9 @@ JsonObject = Mapping[str, Any]
 @component
 class XquikTweetSearch:
     """
-    Search public X/Twitter posts with Xquik and return Haystack Documents.
+    Search public Twitter posts and return Haystack Documents.
 
-    The component calls `GET /x/tweets/search`, sends an `x-api-key` header, and opts in to the
-    current Xquik response contract. Unit tests should mock HTTP calls.
-
-    ### Usage example
-
-    ```python
-    from haystack.utils import Secret
-    from haystack_integrations.components.websearch.xquik import XquikTweetSearch
-
-    search = XquikTweetSearch(api_key=Secret.from_env_var("XQUIK_API_KEY"), top_k=10)
-    result = search.run(query="haystack ai")
-    documents = result["documents"]
-    ```
+    Calls `GET /x/tweets/search` with the current Xquik response contract.
     """
 
     def __init__(
@@ -52,22 +40,22 @@ class XquikTweetSearch:
         max_retries: int = 3,
     ) -> None:
         """
-        Initialize the XquikTweetSearch component.
+        Create a tweet search component.
 
         :param api_key:
-            Xquik API key. Defaults to the `XQUIK_API_KEY` environment variable.
+            Xquik API key. Defaults to `XQUIK_API_KEY`.
         :param top_k:
-            Maximum number of tweets to request. Maps to the Xquik `limit` query parameter.
+            Maximum tweets requested through the Xquik `limit` parameter.
         :param query_type:
-            Xquik search ordering. Use `Latest` for chronological results or `Top` for engagement-ranked results.
+            Search order. `Latest` sorts by time; `Top` sorts by engagement.
         :param base_url:
-            Base Xquik API URL. Defaults to `https://xquik.com/api/v1`.
+            Xquik API base URL.
         :param extra_params:
-            Additional query parameters passed to the tweet search endpoint.
+            Extra tweet search query parameters.
         :param timeout:
-            Timeout in seconds for the HTTP request.
+            Request timeout in seconds.
         :param max_retries:
-            Maximum retry attempts for transient request failures.
+            Retries for transient request failures.
         """
         self.api_key = api_key
         self.top_k = top_k
@@ -88,22 +76,22 @@ class XquikTweetSearch:
         until_time: str | None = None,
     ) -> dict[str, Any]:
         """
-        Search public tweets and return Haystack Documents.
+        Search public tweets.
 
         :param query:
-            X search query string, including standard X query operators.
+            Twitter search query, including supported operators.
         :param top_k:
-            Optional per-run override for the maximum number of tweets.
+            Maximum tweets for this run.
         :param query_type:
-            Optional per-run override for Xquik search ordering.
+            Search order for this run.
         :param cursor:
-            Optional pagination cursor from a previous response.
+            Pagination cursor from the previous response.
         :param since_time:
-            Optional ISO 8601 lower bound for tweet creation time.
+            ISO 8601 creation-time lower bound.
         :param until_time:
-            Optional ISO 8601 upper bound for tweet creation time.
+            ISO 8601 creation-time upper bound.
         :returns:
-            A dictionary with `documents`, `links`, `has_more`, and `next_cursor`.
+            Haystack Documents, links & pagination data.
         """
         params = self._build_params(
             query=query,
@@ -135,22 +123,22 @@ class XquikTweetSearch:
         until_time: str | None = None,
     ) -> dict[str, Any]:
         """
-        Asynchronously search public tweets and return Haystack Documents.
+        Search public tweets asynchronously.
 
         :param query:
-            X search query string, including standard X query operators.
+            Twitter search query, including supported operators.
         :param top_k:
-            Optional per-run override for the maximum number of tweets.
+            Maximum tweets for this run.
         :param query_type:
-            Optional per-run override for Xquik search ordering.
+            Search order for this run.
         :param cursor:
-            Optional pagination cursor from a previous response.
+            Pagination cursor from the previous response.
         :param since_time:
-            Optional ISO 8601 lower bound for tweet creation time.
+            ISO 8601 creation-time lower bound.
         :param until_time:
-            Optional ISO 8601 upper bound for tweet creation time.
+            ISO 8601 creation-time upper bound.
         :returns:
-            A dictionary with `documents`, `links`, `has_more`, and `next_cursor`.
+            Haystack Documents, links & pagination data.
         """
         params = self._build_params(
             query=query,
@@ -200,10 +188,9 @@ class XquikTweetSearch:
 @component
 class XquikUserTweetsFetcher:
     """
-    Fetch recent public posts for a user with Xquik and return Haystack Documents.
+    Fetch a public Twitter user timeline as Haystack Documents.
 
-    The component calls `GET /x/users/{id}/tweets`, where `id` can be an X user ID or username.
-    Unit tests should mock HTTP calls.
+    Calls `GET /x/users/{id}/tweets` with an X user ID or username.
     """
 
     def __init__(
@@ -216,20 +203,20 @@ class XquikUserTweetsFetcher:
         max_retries: int = 3,
     ) -> None:
         """
-        Initialize the XquikUserTweetsFetcher component.
+        Create a user timeline fetcher.
 
         :param api_key:
-            Xquik API key. Defaults to the `XQUIK_API_KEY` environment variable.
+            Xquik API key. Defaults to `XQUIK_API_KEY`.
         :param include_replies:
-            Include reply tweets in the user timeline response.
+            Include replies in the timeline.
         :param include_parent_tweet:
-            Include parent tweet data for replies when available.
+            Include available parent tweet data.
         :param base_url:
-            Base Xquik API URL. Defaults to `https://xquik.com/api/v1`.
+            Xquik API base URL.
         :param timeout:
-            Timeout in seconds for the HTTP request.
+            Request timeout in seconds.
         :param max_retries:
-            Maximum retry attempts for transient request failures.
+            Retries for transient request failures.
         """
         self.api_key = api_key
         self.include_replies = include_replies
@@ -247,18 +234,18 @@ class XquikUserTweetsFetcher:
         include_parent_tweet: bool | None = None,
     ) -> dict[str, Any]:
         """
-        Fetch recent public tweets for a user and return Haystack Documents.
+        Fetch recent public tweets from one user.
 
         :param user_id:
             X user ID or username.
         :param cursor:
-            Optional pagination cursor from a previous response.
+            Pagination cursor from the previous response.
         :param include_replies:
-            Optional per-run override for including replies.
+            Include replies for this run.
         :param include_parent_tweet:
-            Optional per-run override for including parent tweet data.
+            Include parent tweet data for this run.
         :returns:
-            A dictionary with `documents`, `links`, `has_more`, and `next_cursor`.
+            Haystack Documents, links & pagination data.
         """
         params = self._build_params(
             cursor=cursor,
@@ -285,18 +272,18 @@ class XquikUserTweetsFetcher:
         include_parent_tweet: bool | None = None,
     ) -> dict[str, Any]:
         """
-        Asynchronously fetch recent public tweets for a user and return Haystack Documents.
+        Fetch recent public tweets asynchronously.
 
         :param user_id:
             X user ID or username.
         :param cursor:
-            Optional pagination cursor from a previous response.
+            Pagination cursor from the previous response.
         :param include_replies:
-            Optional per-run override for including replies.
+            Include replies for this run.
         :param include_parent_tweet:
-            Optional per-run override for including parent tweet data.
+            Include parent tweet data for this run.
         :returns:
-            A dictionary with `documents`, `links`, `has_more`, and `next_cursor`.
+            Haystack Documents, links & pagination data.
         """
         params = self._build_params(
             cursor=cursor,
