@@ -52,18 +52,18 @@ jobs:
           git fetch --no-tags origin main:refs/remotes/origin/main
           package_version=$(hatch version)
           test "$RELEASE_TAG" = "v${package_version}" || {
-            echo "Release tag must match the package version."
+            echo "Release tag mismatch. Use v${package_version}."
             exit 1
           }
           tag_commit=$(git rev-parse --verify "refs/tags/${RELEASE_TAG}^{commit}")
           head_commit=$(git rev-parse HEAD)
           main_commit=$(git rev-parse refs/remotes/origin/main)
           test "$tag_commit" = "$head_commit" || {
-            echo "Release tag must resolve to the checked-out commit."
+            echo "Release tag targets another commit. Tag the checked-out commit."
             exit 1
           }
           test "$tag_commit" = "$main_commit" || {
-            echo "Release tag must resolve to the default branch tip."
+            echo "Release tag is not the main tip. Release from main."
             exit 1
           }
 

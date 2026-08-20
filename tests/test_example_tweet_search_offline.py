@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-"""Offline smoke test for the documented tweet-search example."""
+"""Test the tweet-search example without network access."""
 
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -55,7 +55,7 @@ def test_example_file_still_documents_pipeline_shape() -> None:
 
 
 def test_tweet_search_example_runs_offline_with_fake_xquik_client() -> None:
-    """Exercise the README/example pipeline mapping without network access."""
+    """Verify the documented pipeline mapping with a fake client."""
 
     search = XquikTweetSearch(api_key=Secret.from_token("xq_offline"), top_k=10)
     pipeline = Pipeline()

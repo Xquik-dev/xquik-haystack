@@ -13,7 +13,7 @@ from types import ModuleType
 from typing import Any, NoReturn, cast
 
 MAX_INPUT_LENGTH = 4096
-NETWORK_ERROR = "network requests are outside this fuzz target"
+NETWORK_ERROR = "Network request blocked. Test response conversion only."
 
 
 class _Document:
@@ -121,26 +121,29 @@ def fuzz_response_helpers(data: bytes) -> None:
     result = _parse_tweets_response(response, endpoint=text)
     expected_documents = 1 if isinstance(tweet_collection, list) else 0
 
-    _require(set(result) == {"documents", "links", "has_more", "next_cursor"}, "unexpected response keys")
-    _require(len(result["documents"]) == expected_documents, "unexpected document count")
-    _require(all(isinstance(link, str) and link for link in result["links"]), "invalid response link")
-    _require(isinstance(result["has_more"], bool), "has_more must be a boolean")
+    _require(set(result) == {"documents", "links", "has_more", "next_cursor"}, "Response keys changed. Restore them.")
+    _require(len(result["documents"]) == expected_documents, "Document count changed. Check conversion.")
+    _require(
+        all(isinstance(link, str) and link for link in result["links"]),
+        "Response link is invalid. Check parsing.",
+    )
+    _require(isinstance(result["has_more"], bool), "has_more is invalid. Return a boolean.")
     _require(
         result["next_cursor"] is None or isinstance(result["next_cursor"], str),
-        "next_cursor must be an optional string",
+        "next_cursor is invalid. Return a string or None.",
     )
 
     document = _tweet_to_document(tweet, endpoint=text)
-    _require(isinstance(document.content, str), "document content must be a string")
-    _require(document.meta["endpoint"] == text, "document endpoint changed")
-    _require("ignored" not in document.meta.get("author", {}), "unexpected author field")
+    _require(isinstance(document.content, str), "Document content is invalid. Return a string.")
+    _require(document.meta["endpoint"] == text, "Document endpoint changed. Preserve its value.")
+    _require("ignored" not in document.meta.get("author", {}), "Author data leaked. Filter unknown fields.")
 
-    _require(_get(tweet, "missing", text_key, default=None) == text, "alias lookup failed")
+    _require(_get(tweet, "missing", text_key, default=None) == text, "Alias lookup failed. Check fallback keys.")
     expected_list = tweet_collection if isinstance(tweet_collection, list) else []
-    _require(_as_list(tweet_collection) == expected_list, "list coercion failed")
-    _require(_as_optional_string(None) is None, "None string coercion failed")
-    _require(_as_optional_string(selector) == str(selector), "integer string coercion failed")
-    _require(_compact({"text": text, "missing": None}) == {"text": text}, "mapping compaction failed")
+    _require(_as_list(tweet_collection) == expected_list, "List conversion failed. Check input handling.")
+    _require(_as_optional_string(None) is None, "None conversion failed. Preserve None.")
+    _require(_as_optional_string(selector) == str(selector), "Integer conversion failed. Return a string.")
+    _require(_compact({"text": text, "missing": None}) == {"text": text}, "Compaction failed. Remove None values.")
 
 
 setup(sys.argv, fuzz_response_helpers)

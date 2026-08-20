@@ -75,7 +75,7 @@ def test_release_workflow_requires_exact_release_tag_on_main() -> None:
     assert "ref: ${{ github.event.release.tag_name }}" in workflow
     assert "refs/tags/${RELEASE_TAG}^{commit}" in workflow
     assert "refs/remotes/origin/main" in workflow
-    assert "default branch tip" in workflow
+    assert "Release tag is not the main tip. Release from main." in workflow
     assert "run: twine check dist/*" in workflow
     assert workflow.count("id-token: write") == 1
     assert "attestations: true" in workflow

@@ -3,7 +3,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-
 export PYTHONPATH="$SRC/xquik-haystack/src"
 
 compile_python_fuzzer \
