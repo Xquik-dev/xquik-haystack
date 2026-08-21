@@ -18,7 +18,7 @@ FAKE_XQUIK_RESPONSE = {
     "tweets": [
         {
             "id": "555",
-            "text": "Offline fixture for the Haystack tweet-search example.",
+            "text": "Haystack mapped this offline tweet to a Document.",
             "createdAt": "2026-07-01T12:00:00Z",
             "url": "https://x.com/example/status/555",
             "lang": "en",
@@ -55,8 +55,6 @@ def test_example_file_still_documents_pipeline_shape() -> None:
 
 
 def test_tweet_search_example_runs_offline_with_fake_xquik_client() -> None:
-    """Verify the documented pipeline mapping with a fake client."""
-
     search = XquikTweetSearch(api_key=Secret.from_token("xq_offline"), top_k=10)
     pipeline = Pipeline()
     pipeline.add_component("x_search", search)
@@ -76,7 +74,7 @@ def test_tweet_search_example_runs_offline_with_fake_xquik_client() -> None:
     documents = result["x_search"]["documents"]
     assert len(documents) == 1
     assert isinstance(documents[0], Document)
-    assert documents[0].content == "Offline fixture for the Haystack tweet-search example."
+    assert documents[0].content == "Haystack mapped this offline tweet to a Document."
     assert documents[0].meta["id"] == "555"
     assert documents[0].meta["endpoint"] == "x.tweets.search"
     assert documents[0].meta["author"]["username"] == "fixture"
