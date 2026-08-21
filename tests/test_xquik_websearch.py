@@ -17,7 +17,7 @@ TWEETS_RESPONSE = {
     "tweets": [
         {
             "id": "123",
-            "text": "Haystack pipelines can retrieve public X context.",
+            "text": "Haystack indexed this tweet as a Document.",
             "createdAt": "2026-05-15T07:00:00Z",
             "url": "https://x.com/example/status/123",
             "lang": "en",
@@ -162,7 +162,7 @@ class TestXquikTweetSearch:
 
         assert len(result["documents"]) == 1
         assert isinstance(result["documents"][0], Document)
-        assert result["documents"][0].content == "Haystack pipelines can retrieve public X context."
+        assert result["documents"][0].content == "Haystack indexed this tweet as a Document."
         assert result["documents"][0].meta["id"] == "123"
         assert result["documents"][0].meta["endpoint"] == "x.tweets.search"
         assert result["documents"][0].meta["created_at"] == "2026-05-15T07:00:00Z"

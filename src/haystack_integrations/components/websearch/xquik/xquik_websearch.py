@@ -24,7 +24,7 @@ JsonObject = Mapping[str, Any]
 @component
 class XquikTweetSearch:
     """
-    Search public Twitter posts and return Haystack Documents.
+    Search public tweets and return Haystack `Document` objects.
 
     Calls `GET /x/tweets/search` with the current Xquik response contract.
     """
@@ -40,7 +40,7 @@ class XquikTweetSearch:
         max_retries: int = 3,
     ) -> None:
         """
-        Create a tweet search component.
+        Configure Twitter search.
 
         :param api_key:
             Xquik API key. Defaults to `XQUIK_API_KEY`.
@@ -91,7 +91,7 @@ class XquikTweetSearch:
         :param until_time:
             ISO 8601 creation-time upper bound.
         :returns:
-            Haystack Documents, links & pagination data.
+            A mapping with `documents`, `links`, `has_more`, and `next_cursor`.
         """
         params = self._build_params(
             query=query,
@@ -138,7 +138,7 @@ class XquikTweetSearch:
         :param until_time:
             ISO 8601 creation-time upper bound.
         :returns:
-            Haystack Documents, links & pagination data.
+            A mapping with `documents`, `links`, `has_more`, and `next_cursor`.
         """
         params = self._build_params(
             query=query,
@@ -188,7 +188,7 @@ class XquikTweetSearch:
 @component
 class XquikUserTweetsFetcher:
     """
-    Fetch a public Twitter user timeline as Haystack Documents.
+    Fetch a public Twitter timeline as Haystack `Document` objects.
 
     Calls `GET /x/users/{id}/tweets` with an X user ID or username.
     """
@@ -203,7 +203,7 @@ class XquikUserTweetsFetcher:
         max_retries: int = 3,
     ) -> None:
         """
-        Create a user timeline fetcher.
+        Configure public user timeline retrieval.
 
         :param api_key:
             Xquik API key. Defaults to `XQUIK_API_KEY`.
@@ -245,7 +245,7 @@ class XquikUserTweetsFetcher:
         :param include_parent_tweet:
             Include parent tweet data for this run.
         :returns:
-            Haystack Documents, links & pagination data.
+            A mapping with `documents`, `links`, `has_more`, and `next_cursor`.
         """
         params = self._build_params(
             cursor=cursor,
@@ -283,7 +283,7 @@ class XquikUserTweetsFetcher:
         :param include_parent_tweet:
             Include parent tweet data for this run.
         :returns:
-            Haystack Documents, links & pagination data.
+            A mapping with `documents`, `links`, `has_more`, and `next_cursor`.
         """
         params = self._build_params(
             cursor=cursor,
