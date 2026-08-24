@@ -7,7 +7,7 @@ version = 1
 path = [
   ".github/SECURITY.md",
   ".gitignore",
-  "README.md",
+  "*.md",
   "src/haystack_integrations/components/websearch/py.typed",
 ]
 precedence = "aggregate"
