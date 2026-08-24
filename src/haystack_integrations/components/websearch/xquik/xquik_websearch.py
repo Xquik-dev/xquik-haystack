@@ -169,17 +169,16 @@ class XquikTweetSearch:
         since_time: str | None,
         until_time: str | None,
     ) -> dict[str, Any]:
-        effective_top_k = self.top_k if top_k is None else top_k
-        effective_query_type = self.query_type if query_type is None else query_type
-        params: dict[str, Any] = {"q": query, "queryType": effective_query_type}
-        if effective_top_k is not None:
-            params["limit"] = effective_top_k
-        if cursor is not None:
-            params["cursor"] = cursor
-        if since_time is not None:
-            params["sinceTime"] = since_time
-        if until_time is not None:
-            params["untilTime"] = until_time
+        params = _compact(
+            {
+                "q": query,
+                "queryType": self.query_type if query_type is None else query_type,
+                "limit": self.top_k if top_k is None else top_k,
+                "cursor": cursor,
+                "sinceTime": since_time,
+                "untilTime": until_time,
+            }
+        )
         if self.extra_params:
             params.update(self.extra_params)
         return params
@@ -335,8 +334,7 @@ def _parse_tweets_response(response: JsonObject, endpoint: str) -> dict[str, Any
             continue
         document = _tweet_to_document(tweet, endpoint=endpoint)
         documents.append(document)
-        url = document.meta.get("url")
-        if isinstance(url, str) and url:
+        if isinstance(url := document.meta.get("url"), str) and url:
             links.append(url)
 
     has_more = bool(_get(response, "has_more", "has_next_page", "hasMore", default=False))
@@ -391,15 +389,11 @@ def _get(data: JsonObject, *keys: str, default: Any) -> Any:
 
 
 def _as_list(value: Any) -> list[Any]:
-    if isinstance(value, list):
-        return value
-    return []
+    return value if isinstance(value, list) else []
 
 
 def _as_optional_string(value: Any) -> str | None:
-    if value is None:
-        return None
-    return str(value)
+    return None if value is None else str(value)
 
 
 def _compact(data: dict[str, Any]) -> dict[str, Any]:
