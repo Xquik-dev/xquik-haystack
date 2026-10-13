@@ -86,6 +86,8 @@ hatch build
 
 Unit tests mock all Xquik HTTP calls.
 
+Run `bin/check-local` before you open a pull request. It runs the lint, license, test & CodeQL checks.
+
 ## Support & project policies
 
 - [Organization support policy](https://github.com/Xquik-dev/.github/blob/main/SUPPORT.md)
