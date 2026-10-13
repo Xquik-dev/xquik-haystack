@@ -91,6 +91,10 @@ Unit tests mock all Xquik HTTP calls.
 
 Run `bin/check-local` before you open a pull request. It runs the lint, license, test & CodeQL checks.
 
+Maintainers release with `bin/release-local <version>` on a clean `main`. It runs the checks, builds, uploads to PyPI, tags the commit and creates the GitHub release. `bin/release-local --dry-run <version>` uploads, tags and releases nothing.
+
+PyPI has no trusted publisher for `xquik-haystack`. A maintainer's PyPI token is the only way it publishes. `bin/release-local` reads it from the Keychain item that `PYPI_KEYCHAIN_SERVICE` names.
+
 ## Support & project policies
 
 - [Organization support policy](https://github.com/Xquik-dev/.github/blob/main/SUPPORT.md)
