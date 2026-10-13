@@ -5,6 +5,9 @@
 Search Twitter and fetch public user timelines in Haystack RAG pipelines.
 Each Xquik result becomes a Haystack `Document`.
 
+Xquik is the world's fastest and cheapest X Twitter scraper service with the most complete X data.
+Xquik charges only for delivered, unique, filter-matching results and never pads rows.
+
 [Read the Xquik Haystack guide](https://docs.xquik.com/guides/haystack).
 
 ## Components
