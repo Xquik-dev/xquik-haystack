@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
@@ -13,7 +12,6 @@ FULL_AFFILIATION_NOTICE = (
     '"X" are trademarks of X Corp.'
 )
 COMPACT_AFFILIATION_NOTICE = "Not affiliated with X Corp."
-ACTION_REFERENCE = re.compile(r"[^@\s]+@[0-9a-f]{40}")
 COPYRIGHT_NOTICE = "# SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>"
 # REUSE-IgnoreStart
 LICENSE_NOTICE = "# SPDX-License-Identifier: Apache-2.0"
@@ -24,6 +22,7 @@ SOURCE_PATHS = (
     Path(".clusterfuzzlite"),
     Path(".github"),
     Path("examples"),
+    Path("scripts"),
     Path("src"),
     Path("tests"),
     Path("pyproject.toml"),
@@ -38,15 +37,8 @@ def test_public_metadata_has_affiliation_notices() -> None:
     assert COMPACT_AFFILIATION_NOTICE in pyproject
 
 
-def test_workflow_actions_are_pinned_to_commit_shas() -> None:
-    for workflow_path in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
-        action_lines = [
-            line.strip() for line in workflow_path.read_text().splitlines() if line.strip().startswith("uses:")
-        ]
-        assert action_lines
-        for action_line in action_lines:
-            action = action_line.removeprefix("uses:").partition("#")[0].strip()
-            assert ACTION_REFERENCE.fullmatch(action), f"Unpinned action in {workflow_path}: {action}"
+def test_repository_has_no_github_actions_workflows() -> None:
+    assert not (ROOT / ".github" / "workflows").exists()
 
 
 def test_source_files_have_copyright_and_license_notices() -> None:
@@ -66,16 +58,3 @@ def test_source_files_have_copyright_and_license_notices() -> None:
 
     assert source_files
     assert missing_notices == []
-
-
-def test_release_workflow_requires_exact_release_tag_on_main() -> None:
-    workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text()
-
-    assert "workflow_dispatch" not in workflow
-    assert "ref: ${{ github.event.release.tag_name }}" in workflow
-    assert "refs/tags/${RELEASE_TAG}^{commit}" in workflow
-    assert "refs/remotes/origin/main" in workflow
-    assert "Release tag is not the main tip. Release from main." in workflow
-    assert "run: twine check dist/*" in workflow
-    assert workflow.count("id-token: write") == 1
-    assert "attestations: true" in workflow

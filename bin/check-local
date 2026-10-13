@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Runs every repository check in order and stops at the first failure.
+# Usage: bin/check-local [--no-status]
+# CodeQL is mandatory, so install it with brew install --cask codeql.
+# When the tree is clean and GitHub has HEAD, the result is posted to HEAD
+# as the xquik-local-checks commit status, through the gh login of whoever
+# runs this script. The status text lists only the checks that passed in
+# this run. --no-status skips posting.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+repository="Xquik-dev/xquik-haystack"
+status_context="xquik-local-checks"
+hatch_version="1.18.0"
+reuse_version="6.2.0"
+
+post_commit_status=true
+for argument in "$@"; do
+  case "$argument" in
+    --no-status) post_commit_status=false ;;
+    *)
+      echo "check-local: unknown option $argument. Use --no-status or no option." >&2
+      exit 2
+      ;;
+  esac
+done
+
+status_commit=""
+if ! $post_commit_status; then
+  echo "==> Commit status not posted because --no-status was passed."
+elif ! command -v gh >/dev/null; then
+  echo "==> Commit status not posted because the GitHub CLI is not installed."
+elif [[ -n "$(git status --porcelain)" ]]; then
+  echo "==> Commit status not posted because the tree has uncommitted changes."
+elif ! gh api --silent "repos/$repository/commits/$(git rev-parse HEAD)" >/dev/null 2>&1; then
+  echo "==> Commit status not posted because GitHub does not have HEAD, or gh is signed out. Push first."
+else
+  status_commit="$(git rev-parse HEAD)"
+fi
+
+# Posts the commit status. A failed post prints a warning and keeps the check result.
+post_status() {
+  local state="$1" description="${2:0:139}"
+  gh api --silent "repos/$repository/statuses/$status_commit" \
+    -f state="$state" -f context="$status_context" -f description="$description" >/dev/null 2>&1 ||
+    echo "check-local: could not post the $state $status_context status. Run gh auth status." >&2
+}
+
+workspace="$(mktemp -d "${TMPDIR:-/tmp}/xquik-haystack-check-local.XXXXXX")"
+current_check="Setup"
+passed=()
+summary=""
+
+on_exit() {
+  local status=$?
+  if [[ -n "$status_commit" ]]; then
+    if ((status == 0)) && [[ -n "$summary" ]]; then
+      post_status success "Passed $summary"
+    else
+      post_status failure "Failed at $current_check."
+    fi
+  fi
+  rm -rf -- "${workspace:?}"
+}
+trap on_exit EXIT
+
+if [[ -n "$status_commit" ]]; then
+  echo "==> Posting a pending $status_context status to ${status_commit:0:12}."
+  post_status pending "Running lint, licensing, tests & CodeQL."
+fi
+
+# A missing or outdated CodeQL CLI fails here, before the slower checks run.
+current_check="CodeQL CLI"
+codeql_version="$(bash scripts/codeql-security --version)"
+
+# Runs 1 check and records its label for the status. On failure, prints the
+# check name and the next step, then exits. An empty label records nothing.
+run_check() {
+  local label="$1" name="$2" next_step="$3"
+  shift 3
+  current_check="$name"
+  echo "==> $name"
+  "$@" || {
+    local status=$?
+    echo "check-local: $name failed. $next_step" >&2
+    exit "$status"
+  }
+  [[ -z "$label" ]] || passed+=("$label")
+}
+
+# Shell functions run without errexit inside run_check, so each one chains its commands with &&.
+install_pythons() {
+  local python_version
+  for python_version in 3.10 3.14; do
+    uv python find "$python_version" >/dev/null 2>&1 || uv python install "$python_version" || return
+  done
+}
+
+# Runs a Hatch script on 1 Python version, in an environment made for this run.
+hatch_run() {
+  local python_version="$1" interpreter
+  shift
+  interpreter="$(uv python find "$python_version")" &&
+    HATCH_PYTHON="$interpreter" HATCH_DATA_DIR="$workspace/hatch-$python_version" \
+      uv tool run --from "hatch==$hatch_version" hatch run "$@"
+}
+
+run_tests() {
+  hatch_run "$1" test:all 2>&1 | tee -a "$workspace/tests.log"
+}
+
+run_check "" "Install Python 3.10 and Python 3.14" \
+  "Install uv and check network access, then rerun." install_pythons
+run_check "lint" "Lint with Ruff on Python 3.10" \
+  "Fix the findings above. hatch run fmt repairs what Ruff can." hatch_run 3.10 fmt-check
+run_check "REUSE" "Licensing with REUSE lint" \
+  "Add the missing copyright and license data listed above." \
+  uv tool run --from "reuse==$reuse_version" reuse lint
+run_check "" "Tests on Python 3.10" "Fix the failing tests above." run_tests 3.10
+run_check "" "Tests on Python 3.14" "Fix the failing tests above." run_tests 3.14
+test_summary="$(awk '/^=+ .*[0-9]+ passed/ { for (i = 1; i < NF; i++) if ($(i + 1) ~ /^passed/) { total += $i; runs++ } } END { if (runs) printf "%d passed in %d runs", total, runs }' "$workspace/tests.log")"
+passed+=("tests${test_summary:+ ($test_summary)}")
+run_check "CodeQL $codeql_version" "Static analysis with CodeQL $codeql_version security-extended queries" \
+  "Fix the CodeQL findings above, then rerun." bash scripts/codeql-security
+
+echo "==> Fuzzing runs separately, because bash scripts/fuzz needs Linux x86_64 or XQUIK_FUZZ_HOST."
+current_check="Final tree check"
+if [[ -n "$status_commit" ]]; then
+  [[ "$(git rev-parse HEAD)" == "$status_commit" && -z "$(git status --porcelain)" ]] || {
+    echo "check-local: the tree changed during the checks. Commit or remove the changes, then rerun." >&2
+    exit 1
+  }
+fi
+printf -v joined '%s, ' "${passed[@]}"
+summary="${joined%, }."
+echo "All local checks passed. They were $summary"
