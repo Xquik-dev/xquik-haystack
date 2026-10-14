@@ -1,5 +1,4 @@
 # SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>
-#
 # SPDX-License-Identifier: Apache-2.0
 
 from __future__ import annotations
@@ -14,9 +13,6 @@ import pytest
 
 ROOT = Path(__file__).parents[1]
 BASH = shutil.which("bash") or "/bin/bash"
-# The uv stub records each call and builds a Python that answers the sanitizer
-# question and records its fuzz call. The uname stub reports the system the test
-# names, so no real fuzzer starts here. The ssh stub records the remote command.
 STUB = r"""uv() {
  [ -z "${LD_PRELOAD:-}" ] || echo "uv ran with a preload" >> "$EVENTS"
  case "$1 $2" in

@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>
-#
 # SPDX-License-Identifier: Apache-2.0
-#
-# Analyzes the Python source with CodeQL's security-extended queries and fails
-# on any finding.
-# Usage: scripts/codeql-security [--version]
-# --version checks the CodeQL CLI and prints its version without analyzing.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 minimum_version=2.27.0
@@ -27,9 +21,10 @@ fi
 echo "CodeQL CLI $version"
 report="$(mktemp -d "${TMPDIR:-/tmp}/xquik-haystack-codeql.XXXXXX")"
 trap 'rm -rf -- "${report:?}"' EXIT
+"$codeql" pack install codeql/no-code-comments
 "$codeql" database create "$report/database" --language=python --build-mode=none \
   --source-root="$PWD" --threads=2
 "$codeql" database analyze --download "$report/database" \
-  codeql/python-queries@1.8.10:codeql-suites/python-security-extended.qls \
+  codeql/python-queries@1.8.10:codeql-suites/python-security-extended.qls codeql/no-code-comments \
   --format=sarifv2.1.0 --output="$report/report.sarif" --threads=2
 uv run --no-project python scripts/verify_codeql.py "$report/report.sarif"

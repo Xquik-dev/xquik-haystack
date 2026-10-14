@@ -1,6 +1,5 @@
 #!/bin/bash -eu
 # SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>
-#
 # SPDX-License-Identifier: Apache-2.0
 
 export PYTHONPATH="$SRC/xquik-haystack/src"

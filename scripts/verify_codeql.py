@@ -1,8 +1,5 @@
 # SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>
-#
 # SPDX-License-Identifier: Apache-2.0
-
-"""Fail unless a SARIF report shows 1 complete CodeQL run with no findings."""
 
 from __future__ import annotations
 

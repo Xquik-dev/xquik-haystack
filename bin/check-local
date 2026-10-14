@@ -1,15 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>
-#
 # SPDX-License-Identifier: Apache-2.0
-#
-# Runs every repository check in order and stops at the first failure.
-# Usage: bin/check-local [--no-status]
-# CodeQL is mandatory, so install it with brew install --cask codeql.
-# When the tree is clean and GitHub has HEAD, the result is posted to HEAD
-# as the xquik-local-checks commit status, through the gh login of whoever
-# runs this script. The status text lists only the checks that passed in
-# this run. --no-status skips posting.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -42,7 +33,6 @@ else
   status_commit="$(git rev-parse HEAD)"
 fi
 
-# Posts the commit status. A failed post prints a warning and keeps the check result.
 post_status() {
   local state="$1" description="${2:0:139}"
   gh api --silent "repos/$repository/statuses/$status_commit" \
@@ -73,12 +63,9 @@ if [[ -n "$status_commit" ]]; then
   post_status pending "Running lint, licensing, tests & CodeQL."
 fi
 
-# A missing or outdated CodeQL CLI fails here, before the slower checks run.
 current_check="CodeQL CLI"
 codeql_version="$(bash scripts/codeql-security --version)"
 
-# Runs 1 check and records its label for the status. On failure, prints the
-# check name and the next step, then exits. An empty label records nothing.
 run_check() {
   local label="$1" name="$2" next_step="$3"
   shift 3
@@ -92,7 +79,7 @@ run_check() {
   [[ -z "$label" ]] || passed+=("$label")
 }
 
-# Shell functions run without errexit inside run_check, so each one chains its commands with &&.
+# Shell functions run without errexit inside run_check, so each one chains its commands with &&. https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
 install_pythons() {
   local python_version
   for python_version in 3.10 3.14; do
@@ -100,7 +87,6 @@ install_pythons() {
   done
 }
 
-# Runs a Hatch script on 1 Python version, in an environment made for this run.
 hatch_run() {
   local python_version="$1" interpreter
   shift

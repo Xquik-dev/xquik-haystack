@@ -1,5 +1,4 @@
 # SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>
-#
 # SPDX-License-Identifier: Apache-2.0
 
 from haystack.utils import Secret

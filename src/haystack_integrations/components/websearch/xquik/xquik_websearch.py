@@ -1,5 +1,4 @@
 # SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>
-#
 # SPDX-License-Identifier: Apache-2.0
 
 from __future__ import annotations
@@ -26,7 +25,7 @@ class XquikTweetSearch:
     """
     Search public tweets and return Haystack `Document` objects.
 
-    Calls `GET /x/tweets/search` with the current Xquik response contract.
+    Calls `GET /x/tweets/search`.
     """
 
     def __init__(
@@ -47,7 +46,7 @@ class XquikTweetSearch:
         :param top_k:
             Maximum tweets requested through the Xquik `limit` parameter.
         :param query_type:
-            Search order. `Latest` sorts by time; `Top` sorts by engagement.
+            Search order. `Latest` sorts by time, and `Top` sorts by engagement.
         :param base_url:
             Xquik API base URL.
         :param extra_params:
@@ -189,7 +188,7 @@ class XquikUserTweetsFetcher:
     """
     Fetch a public Twitter timeline as Haystack `Document` objects.
 
-    Calls `GET /x/users/{id}/tweets` with an X user ID or username.
+    Calls `GET /x/users/{id}/tweets`.
     """
 
     def __init__(
