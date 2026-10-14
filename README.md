@@ -70,11 +70,16 @@ documents = result["documents"]
 
 Each tweet becomes a Haystack `Document` with this mapping.
 
-- `Document.content`: tweet text, or an empty string when text is missing
-- `Document.meta["endpoint"]`: Xquik endpoint family used by the component
-- `Document.meta`: available `id`, `url`, and `created_at` source values
-- `Document.meta["author"]`: available author identity and verification data
-- `Document.meta`: available like, repost, reply, quote, view & bookmark counts
+- `Document.content` holds the tweet text, or an empty string when text is
+  missing.
+- `Document.meta["endpoint"]` names the Xquik endpoint family the component
+  used.
+- `Document.meta` holds the available `id`, `url`, and `created_at` source
+  values.
+- `Document.meta["author"]` holds the available author identity and
+  verification data.
+- `Document.meta` holds the available like, repost, reply, quote, view &
+  bookmark counts.
 
 ## Development
 
