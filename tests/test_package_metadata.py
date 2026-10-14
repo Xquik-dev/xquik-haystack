@@ -1,5 +1,4 @@
 # SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>
-#
 # SPDX-License-Identifier: Apache-2.0
 
 from __future__ import annotations
@@ -13,9 +12,9 @@ FULL_AFFILIATION_NOTICE = (
 )
 COMPACT_AFFILIATION_NOTICE = "Not affiliated with X Corp."
 COPYRIGHT_NOTICE = "# SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>"
-# REUSE-IgnoreStart
+# REUSE-IgnoreStart https://reuse.software/faq/#exclude-lines
 LICENSE_NOTICE = "# SPDX-License-Identifier: Apache-2.0"
-# REUSE-IgnoreEnd
+# REUSE-IgnoreEnd https://reuse.software/faq/#exclude-lines
 SOURCE_SUFFIXES = frozenset({".py", ".sh", ".toml", ".yaml", ".yml"})
 SOURCE_NAMES = frozenset({"Dockerfile"})
 SOURCE_PATHS = (

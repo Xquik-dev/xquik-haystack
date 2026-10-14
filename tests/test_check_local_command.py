@@ -1,5 +1,4 @@
 # SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>
-#
 # SPDX-License-Identifier: Apache-2.0
 
 from __future__ import annotations
@@ -13,14 +12,12 @@ import pytest
 
 ROOT = Path(__file__).parents[1]
 BASH = shutil.which("bash") or "/bin/bash"
-# The stub CodeQL script answers --version, records its run, and fails when CHECK_CASE names it.
 CODEQL = r"""#!/usr/bin/env bash
 if [ "${1:-}" = --version ]; then [ "$CHECK_CASE" != no-codeql ] || exit 1; echo 2.27.2; exit; fi
 printf 'codeql\n' >> "$CHECK_EVENTS"
 [ "$CHECK_CASE" != changed ] || touch "$CHECK_DIRTY"
 [ "$CHECK_CASE" != codeql ]
 """
-# The stubs record each check as an event and fail the one that CHECK_CASE names.
 STUB = r"""record() { printf '%s\n' "$1" >> "$CHECK_EVENTS"; [ "$CHECK_CASE" != "$1" ]; }
 git() {
  case "$1 $2" in

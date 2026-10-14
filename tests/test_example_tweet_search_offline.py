@@ -1,8 +1,5 @@
 # SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>
-#
 # SPDX-License-Identifier: Apache-2.0
-
-"""Test the tweet-search example without network access."""
 
 from pathlib import Path
 from unittest.mock import MagicMock, patch

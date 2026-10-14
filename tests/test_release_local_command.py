@@ -1,5 +1,4 @@
 # SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>
-#
 # SPDX-License-Identifier: Apache-2.0
 
 from __future__ import annotations
@@ -13,7 +12,6 @@ import pytest
 
 ROOT = Path(__file__).parents[1]
 BASH = shutil.which("bash") or "/bin/bash"
-# The stubs record each release step as an event. RELEASE_CASE picks the state they report.
 STUB = r"""record() { printf '%s\n' "$1" >> "$RELEASE_EVENTS"; }
 git() {
  case "$1" in
