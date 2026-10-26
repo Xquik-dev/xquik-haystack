@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>
 # SPDX-License-Identifier: Apache-2.0
 
+from collections.abc import Mapping
+
 from haystack import Pipeline
 from haystack.utils import Secret
 
@@ -11,5 +13,6 @@ search = XquikTweetSearch(api_key=Secret.from_env_var("XQUIK_API_KEY"), top_k=10
 pipeline = Pipeline()
 pipeline.add_component("x_search", search)
 
-result = pipeline.run({"x_search": {"query": "haystack ai"}})
+inputs: dict[str, dict[str, str]] = {"x_search": {"query": "haystack ai"}}
+result: Mapping[str, Mapping[str, object]] = pipeline.run(inputs)
 print(result["x_search"]["documents"])

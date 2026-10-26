@@ -9,14 +9,16 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import TypeAlias
 
 import pytest
+
+JsonValue: TypeAlias = str | int | float | bool | list["JsonValue"] | dict[str, "JsonValue"] | None
 
 ROOT = Path(__file__).parents[1]
 BASH = shutil.which("bash") or "/bin/bash"
 FAKE_CODEQL = "#!/usr/bin/env bash\n[ \"$*\" = 'version --format=terse' ] || exit 99\necho {version}\n"
-EXTRACTED = {"descriptor": {"id": "py/diagnostics/successfully-extracted-files"}, "level": "none"}
+EXTRACTED: JsonValue = {"descriptor": {"id": "py/diagnostics/successfully-extracted-files"}, "level": "none"}
 
 
 def check_version(tmp_path: Path, version: str | None) -> subprocess.CompletedProcess[str]:
@@ -55,22 +57,29 @@ def test_unusable_codeql_fails_with_the_next_step(tmp_path: Path, version: str |
     assert result.stdout == ""
 
 
-def report(**change: Any) -> dict[str, Any]:
-    run = {
+def run(**change: JsonValue) -> JsonValue:
+    return {
         "invocations": [{"executionSuccessful": True, "toolExecutionNotifications": [EXTRACTED]}],
         "results": [],
         **change,
     }
-    return {"runs": [run], "version": "2.1.0"}
 
 
-def finding(level: str | None) -> dict[str, Any]:
-    location = {"artifactLocation": {"uri": "src/a.py"}, "region": {"startLine": 7}}
-    result = {"locations": [{"physicalLocation": location}], "message": {"text": "Unsafe value."}, "ruleId": "py/x"}
+def report(**change: JsonValue) -> JsonValue:
+    return {"runs": [run(**change)], "version": "2.1.0"}
+
+
+def finding(level: str | None) -> JsonValue:
+    location: JsonValue = {"artifactLocation": {"uri": "src/a.py"}, "region": {"startLine": 7}}
+    result: dict[str, JsonValue] = {
+        "locations": [{"physicalLocation": location}],
+        "message": {"text": "Unsafe value."},
+        "ruleId": "py/x",
+    }
     return result if level is None else {**result, "level": level}
 
 
-def verify(tmp_path: Path, sarif: Any) -> subprocess.CompletedProcess[str]:
+def verify(tmp_path: Path, sarif: JsonValue) -> subprocess.CompletedProcess[str]:
     path = tmp_path / "report.sarif"
     path.write_text(json.dumps(sarif))
     return subprocess.run(
@@ -98,8 +107,8 @@ def test_finding_of_any_level_fails_and_names_its_place(tmp_path: Path, level: s
     ("sarif", "message"),
     [
         ({"runs": [], "version": "2.1.0"}, "CodeQL report lacks runs."),
-        ({"runs": report()["runs"] * 2, "version": "2.1.0"}, "Expected 1 SARIF 2.1.0 run."),
-        ({"runs": report()["runs"], "version": "2.0.0"}, "Expected 1 SARIF 2.1.0 run."),
+        ({"runs": [run(), run()], "version": "2.1.0"}, "Expected 1 SARIF 2.1.0 run."),
+        ({"runs": [run()], "version": "2.0.0"}, "Expected 1 SARIF 2.1.0 run."),
         (report(results=None), "CodeQL report lacks results."),
         (report(invocations=[]), "CodeQL report lacks invocations."),
         (
@@ -116,7 +125,7 @@ def test_finding_of_any_level_fails_and_names_its_place(tmp_path: Path, level: s
         ),
     ],
 )
-def test_incomplete_report_fails(tmp_path: Path, sarif: Any, message: str) -> None:
+def test_incomplete_report_fails(tmp_path: Path, sarif: JsonValue, message: str) -> None:
     result = verify(tmp_path, sarif)
     assert result.returncode == 1
     assert result.stderr == f"{message}\n"

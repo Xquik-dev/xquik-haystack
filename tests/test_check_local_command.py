@@ -23,6 +23,10 @@ git() {
  case "$1 $2" in
   'rev-parse HEAD') echo abc123;;
   'status --porcelain') if [ "$CHECK_CASE" = dirty ] || [ -e "$CHECK_DIRTY" ]; then echo ' M README.md'; fi;;
+  'grep -nP')
+   printf 'ignores\n' >> "$CHECK_EVENTS"
+   [ "$CHECK_CASE" = ignores ] || return 1
+   echo a.py:1:x;;
   *) exit 99;;
  esac
 }
@@ -44,6 +48,12 @@ uv() {
     'hatch==1.18.0 hatch run')
      [ "$HATCH_DATA_DIR" != "${HATCH_DATA_DIR%/hatch-${HATCH_PYTHON#/python/}}" ] || exit 99
      [ "$7" != test:all ] || echo "===== 25 passed in 1.00s ====="
+     if [ "$7" = test:types ]; then
+      [ "$8" = --any-exprs-report ] || exit 99
+      mkdir -p "$9"
+      if [ "$CHECK_CASE" = any-exprs ]; then anys=1; else anys=0; fi
+      printf 'Total %s 10 90.00%%\n' "$anys" > "$9/any-exprs.txt"
+     fi
      record "$7 on $HATCH_PYTHON";;
     'reuse==6.2.0 reuse lint') record reuse;;
     *) exit 99;;
@@ -55,9 +65,18 @@ export -f record git gh uv
 runner=$1; shift
 bash "$runner" "$@"
 """
-CHECKS = ["fmt-check on /python/3.10", "reuse", "test:all on /python/3.10", "test:all on /python/3.14", "codeql"]
-PENDING = "pending: Running lint, licensing, tests & CodeQL."
-PASSED = "lint, REUSE, tests (50 passed in 2 runs), CodeQL 2.27.2."
+CHECKS = [
+    "fmt-check on /python/3.10",
+    "ignores",
+    "test:types on /python/3.10",
+    "test:types on /python/3.14",
+    "reuse",
+    "test:all on /python/3.10",
+    "test:all on /python/3.14",
+    "codeql",
+]
+PENDING = "pending: Running lint, types, licensing, tests & CodeQL."
+PASSED = "lint, types, REUSE, tests (50 passed in 2 runs), CodeQL 2.27.2."
 
 
 def run_checks(tmp_path: Path, case: str, *arguments: str) -> tuple[int, list[str], list[str], list[str]]:
@@ -99,9 +118,13 @@ def test_success_status_lists_the_checks_that_passed(tmp_path: Path) -> None:
     ("case", "ran", "failed"),
     [
         ("fmt-check on /python/3.10", CHECKS[:1], "Lint with Ruff on Python 3.10"),
-        ("reuse", CHECKS[:2], "Licensing with REUSE lint"),
-        ("test:all on /python/3.10", CHECKS[:3], "Tests on Python 3.10"),
-        ("test:all on /python/3.14", CHECKS[:4], "Tests on Python 3.14"),
+        ("ignores", CHECKS[:2], "Type ignore comments"),
+        ("test:types on /python/3.10", CHECKS[:3], "Type check with mypy on Python 3.10"),
+        ("any-exprs", CHECKS[:3], "Type check with mypy on Python 3.10"),
+        ("test:types on /python/3.14", CHECKS[:4], "Type check with mypy on Python 3.14"),
+        ("reuse", CHECKS[:5], "Licensing with REUSE lint"),
+        ("test:all on /python/3.10", CHECKS[:6], "Tests on Python 3.10"),
+        ("test:all on /python/3.14", CHECKS[:7], "Tests on Python 3.14"),
         ("codeql", CHECKS, "Static analysis with CodeQL 2.27.2 security-extended queries"),
         ("changed", CHECKS, "Final tree check"),
     ],

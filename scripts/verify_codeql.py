@@ -5,31 +5,45 @@ from __future__ import annotations
 
 import json
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import TypeAlias
+
+JsonValue: TypeAlias = str | int | float | bool | list["JsonValue"] | dict[str, "JsonValue"] | None
 
 EXTRACTED_FILES = "py/diagnostics/successfully-extracted-files"
 HARMLESS_LEVELS = ("none", "note")
 
-
-def _items(value: Any, name: str) -> list[dict[str, Any]]:
-    if not isinstance(value, list) or not value or not all(isinstance(item, dict) for item in value):
-        message = f"CodeQL report lacks {name}."
-        raise ValueError(message)
-    return value
+_decode_json: Callable[[str], JsonValue] = json.loads
 
 
-def _describe(finding: dict[str, Any]) -> str:
-    location = (finding.get("locations") or [{}])[0].get("physicalLocation", {})
-    file = location.get("artifactLocation", {}).get("uri", "unknown file")
-    line = location.get("region", {}).get("startLine", 0)
-    return f"{finding.get('ruleId')} {file}:{line} {finding.get('message', {}).get('text', '')}".strip()
+def _items(value: JsonValue, name: str) -> list[dict[str, JsonValue]]:
+    if isinstance(value, list):
+        items = [item for item in value if isinstance(item, dict)]
+        if items and len(items) == len(value):
+            return items
+    message = f"CodeQL report lacks {name}."
+    raise ValueError(message)
 
 
-def validate(report: Any) -> str:
+def _field(value: JsonValue, key: str, default: JsonValue) -> JsonValue:
+    return value.get(key, default) if isinstance(value, dict) else default
+
+
+def _describe(finding: JsonValue) -> str:
+    locations = _field(finding, "locations", None)
+    first = locations[0] if isinstance(locations, list) and locations else {}
+    location = _field(first, "physicalLocation", {})
+    file = _field(_field(location, "artifactLocation", {}), "uri", "unknown file")
+    line = _field(_field(location, "region", {}), "startLine", 0)
+    text = _field(_field(finding, "message", {}), "text", "")
+    return f"{_field(finding, 'ruleId', None)} {file}:{line} {text}".strip()
+
+
+def validate(report: JsonValue) -> str:
     """Return a summary of a clean report, or raise with the reason it is not clean."""
     runs = _items(report.get("runs") if isinstance(report, dict) else None, "runs")
-    if report.get("version") != "2.1.0" or len(runs) != 1:
+    if not isinstance(report, dict) or report.get("version") != "2.1.0" or len(runs) != 1:
         message = "Expected 1 SARIF 2.1.0 run."
         raise ValueError(message)
     findings = runs[0].get("results")
@@ -49,7 +63,7 @@ def validate(report: Any) -> str:
             if notification.get("level") not in HARMLESS_LEVELS:
                 message = "CodeQL diagnostic needs review."
                 raise ValueError(message)
-            extracted += (notification.get("descriptor") or {}).get("id") == EXTRACTED_FILES
+            extracted += _field(notification.get("descriptor") or {}, "id", None) == EXTRACTED_FILES
     if not extracted:
         message = "CodeQL did not confirm extracted Python files."
         raise ValueError(message)
@@ -58,6 +72,6 @@ def validate(report: Any) -> str:
 
 if __name__ == "__main__":
     try:
-        sys.stdout.write(validate(json.loads(Path(sys.argv[1]).read_text())) + "\n")
+        sys.stdout.write(validate(_decode_json(Path(sys.argv[1]).read_text())) + "\n")
     except ValueError as error:
         sys.exit(str(error))

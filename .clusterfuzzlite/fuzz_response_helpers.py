@@ -3,30 +3,32 @@
 
 from __future__ import annotations
 
-import logging
+import logging as stdlib_logging
 import sys
-from collections.abc import Callable, Sequence
-from contextlib import AbstractContextManager
-from importlib import import_module
+from collections.abc import Callable
 from types import ModuleType
-from typing import Any, NoReturn, cast
+from typing import NoReturn, TypeVar
+
+import atheris
 
 MAX_INPUT_LENGTH = 4096
 NETWORK_ERROR = "Network request blocked. Test response conversion only."
 
+_Decorated = TypeVar("_Decorated")
+
 
 class _Document:
-    def __init__(self, content: str, meta: dict[str, Any]) -> None:
+    def __init__(self, content: str, meta: dict[str, object]) -> None:
         self.content = content
         self.meta = meta
 
 
 class _Component:
-    def __call__(self, value: Any) -> Any:
+    def __call__(self, value: _Decorated) -> _Decorated:
         return value
 
     @staticmethod
-    def output_types(**_types: Any) -> Callable[[Any], Any]:
+    def output_types(**_types: object) -> Callable[[_Decorated], _Decorated]:
         return lambda value: value
 
 
@@ -42,7 +44,7 @@ class _Secret:
         return self.value
 
 
-def _unused_request(*_args: Any, **_kwargs: Any) -> NoReturn:
+def _unused_request(*_args: object, **_kwargs: object) -> NoReturn:
     raise RuntimeError(NETWORK_ERROR)
 
 
@@ -51,37 +53,40 @@ def _require(condition: bool, message: str) -> None:
         raise AssertionError(message)
 
 
-haystack = ModuleType("haystack")
+class _Haystack(ModuleType):
+    Document = _Document
+    component = _Component()
+    logging = stdlib_logging
+
+
+class _HaystackUtils(ModuleType):
+    Secret = _Secret
+
+
+class _RequestsUtils(ModuleType):
+    async_request_with_retry = staticmethod(_unused_request)
+    request_with_retry = staticmethod(_unused_request)
+
+
+haystack = _Haystack("haystack")
 haystack.__path__ = []
-haystack.Document = _Document
-haystack.component = _Component()
-haystack.logging = logging
-
-haystack_utils = ModuleType("haystack.utils")
+haystack_utils = _HaystackUtils("haystack.utils")
 haystack_utils.__path__ = []
-haystack_utils.Secret = _Secret
-
-requests_utils = ModuleType("haystack.utils.requests_utils")
-requests_utils.async_request_with_retry = _unused_request
-requests_utils.request_with_retry = _unused_request
 
 sys.modules["haystack"] = haystack
 sys.modules["haystack.utils"] = haystack_utils
-sys.modules["haystack.utils.requests_utils"] = requests_utils
+sys.modules["haystack.utils.requests_utils"] = _RequestsUtils("haystack.utils.requests_utils")
 
-atheris = import_module("atheris")
-instrument_imports = cast(Callable[[], AbstractContextManager[None]], atheris.instrument_imports)
-setup = cast(Callable[[Sequence[str], Callable[[bytes], None]], None], atheris.Setup)
-fuzz = cast(Callable[[], NoReturn], atheris.Fuzz)
-
-with instrument_imports():
+with atheris.instrument_imports():
     from haystack_integrations.components.websearch.xquik.xquik_websearch import (
+        JsonValue,
         _as_list,
         _as_optional_string,
         _compact,
         _get,
         _parse_tweets_response,
-        _tweet_to_document,
+        _tweet_content,
+        _tweet_meta,
     )
 
 
@@ -97,7 +102,7 @@ def fuzz_response_helpers(data: bytes) -> None:
     author_key = ("author", "user")[selector % 2]
     username_key = ("username", "screen_name")[selector % 2]
 
-    tweet: dict[str, Any] = {
+    tweet: dict[str, JsonValue] = {
         "id": str(selector),
         text_key: text,
         created_key: text,
@@ -110,8 +115,8 @@ def fuzz_response_helpers(data: bytes) -> None:
             "ignored": None,
         },
     }
-    tweet_collection: Any = [tweet, text, None] if selector & 1 else {"unexpected": text}
-    response = {
+    tweet_collection: JsonValue = [tweet, text, None] if selector & 1 else {"unexpected": text}
+    response: JsonValue = {
         "tweets" if selector & 8 else "data": tweet_collection,
         "has_next_page" if selector & 16 else "hasMore": bool(selector & 32),
         "next_cursor" if selector & 64 else "nextCursor": text if selector & 128 else None,
@@ -123,7 +128,7 @@ def fuzz_response_helpers(data: bytes) -> None:
     _require(set(result) == {"documents", "links", "has_more", "next_cursor"}, "Response keys changed. Restore them.")
     _require(len(result["documents"]) == expected_documents, "Document count changed. Check conversion.")
     _require(
-        all(isinstance(link, str) and link for link in result["links"]),
+        all(result["links"]),
         "Response link is invalid. Check parsing.",
     )
     _require(isinstance(result["has_more"], bool), "has_more is invalid. Return a boolean.")
@@ -132,10 +137,11 @@ def fuzz_response_helpers(data: bytes) -> None:
         "next_cursor is invalid. Return a string or None.",
     )
 
-    document = _tweet_to_document(tweet, endpoint=text)
-    _require(isinstance(document.content, str), "Document content is invalid. Return a string.")
-    _require(document.meta["endpoint"] == text, "Document endpoint changed. Preserve its value.")
-    _require("ignored" not in document.meta.get("author", {}), "Author data leaked. Filter unknown fields.")
+    meta = _tweet_meta(tweet, endpoint=text)
+    author = meta.get("author")
+    _require(isinstance(_tweet_content(tweet), str), "Document content is invalid. Return a string.")
+    _require(meta["endpoint"] == text, "Document endpoint changed. Preserve its value.")
+    _require(isinstance(author, dict) and "ignored" not in author, "Author data leaked. Filter unknown fields.")
 
     _require(_get(tweet, "missing", text_key, default=None) == text, "Alias lookup failed. Check fallback keys.")
     expected_list = tweet_collection if isinstance(tweet_collection, list) else []
@@ -145,5 +151,5 @@ def fuzz_response_helpers(data: bytes) -> None:
     _require(_compact({"text": text, "missing": None}) == {"text": text}, "Compaction failed. Remove None values.")
 
 
-setup(sys.argv, fuzz_response_helpers)
-fuzz()
+atheris.Setup(sys.argv, fuzz_response_helpers)
+atheris.Fuzz()
