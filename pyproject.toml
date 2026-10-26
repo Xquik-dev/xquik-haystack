@@ -149,7 +149,6 @@ ban-relative-imports = "parents"
 "tests/**/*" = ["D", "PLR2004", "S101", "TID252"]
 # Script tests run this repository's own scripts with fixed arguments
 "tests/test_*_command.py" = ["S603"]
-# Examples can print their output
 "examples/**/*" = ["D", "T201"]
 
 [tool.mypy]

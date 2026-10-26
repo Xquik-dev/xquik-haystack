@@ -127,7 +127,7 @@ hatch build
 
 Unit tests mock all Xquik HTTP calls.
 
-Run `bin/check-local` before you open a pull request. It runs the lint, type, license, test & CodeQL checks. mypy checks every Python file in strict mode, and the build rejects any expression of type `Any` and any type ignore comment.
+Run `bin/check-local` before you open a pull request. It runs the lint, type, license, test & CodeQL checks. mypy checks every Python file in strict mode, and `bin/check-local` fails on any expression of type `Any` and on any type checker comment.
 
 Maintainers release with `bin/release-local <version>` on a clean `main`. It runs the checks, builds, uploads to PyPI, tags the commit and creates the GitHub release. `bin/release-local --dry-run <version>` uploads, tags and releases nothing.
 

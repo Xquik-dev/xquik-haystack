@@ -95,16 +95,16 @@ hatch_run() {
       uv tool run --from "hatch==$hatch_version" hatch run "$@"
 }
 
-# mypy allows an Any expression assigned to an annotated name, so its report holds every expression to a precise type. https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-disallow-any-expr
+# mypy allows an Any expression assigned to an annotated name, so the build also fails on each Any its report counts. https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-disallow-any-expr
 check_types() {
   local report="$workspace/types-$1"
   hatch_run "$1" test:types --any-exprs-report "$report" &&
     awk '$2 ~ /^[1-9]/ { print } $1 == "Total" { total = $2 } END { exit total != "0" }' "$report/any-exprs.txt"
 }
 
-# mypy has no setting that turns its ignore comments off, so the build rejects them and pyright's. https://mypy.readthedocs.io/en/stable/common_issues.html#spurious-errors-and-locally-silencing-the-checker
+# mypy has no setting that turns its ignore and inline config comments off, so the build rejects them and pyright's. https://mypy.readthedocs.io/en/stable/common_issues.html#spurious-errors-and-locally-silencing-the-checker
 no_ignore_comments() {
-  git grep -nP --untracked '#\s*(type|pyright):\s*ignore' -- '*.py' '*.pyi'
+  git grep -nP --untracked '#\s*((mypy|pyright):|type:\s*ignore)' -- '*.py' '*.pyi'
   (($? == 1))
 }
 
@@ -116,12 +116,12 @@ run_check "" "Install Python 3.10 and Python 3.14" \
   "Install uv and check network access, then rerun." install_pythons
 run_check "lint" "Lint with Ruff on Python 3.10" \
   "Fix the findings above. hatch run fmt repairs what Ruff can." hatch_run 3.10 fmt-check
-run_check "" "Type ignore comments" \
+run_check "" "Type checker comments" \
   "Remove the comments listed above and fix the type errors they hide." no_ignore_comments
 run_check "" "Type check with mypy on Python 3.10" \
-  "Fix the mypy errors and the Any expressions listed above." check_types 3.10
+  "Fix the mypy errors and the Any counts listed above." check_types 3.10
 run_check "types" "Type check with mypy on Python 3.14" \
-  "Fix the mypy errors and the Any expressions listed above." check_types 3.14
+  "Fix the mypy errors and the Any counts listed above." check_types 3.14
 run_check "REUSE" "Licensing with REUSE lint" \
   "Add the missing copyright and license data listed above." \
   uv tool run --from "reuse==$reuse_version" reuse lint

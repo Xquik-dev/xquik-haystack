@@ -12,6 +12,7 @@ import pytest
 
 ROOT = Path(__file__).parents[1]
 BASH = shutil.which("bash") or "/bin/bash"
+GIT = shutil.which("git") or "/usr/bin/git"
 CODEQL = r"""#!/usr/bin/env bash
 if [ "${1:-}" = --version ]; then [ "$CHECK_CASE" != no-codeql ] || exit 1; echo 2.27.2; exit; fi
 printf 'codeql\n' >> "$CHECK_EVENTS"
@@ -25,8 +26,7 @@ git() {
   'status --porcelain') if [ "$CHECK_CASE" = dirty ] || [ -e "$CHECK_DIRTY" ]; then echo ' M README.md'; fi;;
   'grep -nP')
    printf 'ignores\n' >> "$CHECK_EVENTS"
-   [ "$CHECK_CASE" = ignores ] || return 1
-   echo a.py:1:x;;
+   command git "$@";;
   *) exit 99;;
  esac
 }
@@ -79,10 +79,15 @@ PENDING = "pending: Running lint, types, licensing, tests & CodeQL."
 PASSED = "lint, types, REUSE, tests (50 passed in 2 runs), CodeQL 2.27.2."
 
 
-def run_checks(tmp_path: Path, case: str, *arguments: str) -> tuple[int, list[str], list[str], list[str]]:
+def run_checks(
+    tmp_path: Path, case: str, *arguments: str, source: str = ""
+) -> tuple[int, list[str], list[str], list[str]]:
     project = tmp_path / "project"
     for folder in ("bin", "scripts"):
         (project / folder).mkdir(parents=True)
+    subprocess.run([GIT, "init", "-q", str(project)], check=True)
+    if source:
+        (project / "probe.py").write_text(source)
     runner = project / "bin/check-local"
     runner.write_bytes((ROOT / "bin/check-local").read_bytes())
     (project / "scripts/codeql-security").write_text(CODEQL)
@@ -118,7 +123,6 @@ def test_success_status_lists_the_checks_that_passed(tmp_path: Path) -> None:
     ("case", "ran", "failed"),
     [
         ("fmt-check on /python/3.10", CHECKS[:1], "Lint with Ruff on Python 3.10"),
-        ("ignores", CHECKS[:2], "Type ignore comments"),
         ("test:types on /python/3.10", CHECKS[:3], "Type check with mypy on Python 3.10"),
         ("any-exprs", CHECKS[:3], "Type check with mypy on Python 3.10"),
         ("test:types on /python/3.14", CHECKS[:4], "Type check with mypy on Python 3.14"),
@@ -129,6 +133,19 @@ def test_success_status_lists_the_checks_that_passed(tmp_path: Path) -> None:
         ("changed", CHECKS, "Final tree check"),
     ],
 )
+@pytest.mark.parametrize(
+    "comment",
+    ["type: ignore[assignment]", "pyright: ignore[reportAssignmentType]", "mypy: ignore-errors", "pyright: basic"],
+)
+def test_type_checker_comments_fail_the_build(tmp_path: Path, comment: str) -> None:
+    line = f'x: int = "a"  # {comment}'
+    status, events, statuses, output = run_checks(tmp_path, "ready", source=f"{line}\n")
+    assert status == 1
+    assert events == CHECKS[:2]
+    assert statuses == [PENDING, "failure: Failed at Type checker comments."]
+    assert f"probe.py:1:{line}" in output
+
+
 def test_failed_check_posts_failure_and_stops(tmp_path: Path, case: str, ran: list[str], failed: str) -> None:
     status, events, statuses, _ = run_checks(tmp_path, case)
     assert status != 0
