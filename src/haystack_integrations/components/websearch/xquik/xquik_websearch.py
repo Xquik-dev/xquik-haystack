@@ -3,8 +3,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import Any, Literal
+import json
+from collections.abc import Callable, Coroutine, Mapping
+from typing import Literal, ParamSpec, TypeAlias, TypedDict, TypeVar
 from urllib.parse import quote
 
 from haystack import Document, component, logging
@@ -17,7 +18,29 @@ XQUIK_API_URL = "https://xquik.com/api/v1"
 XQUIK_API_CONTRACT = "2026-04-29"
 
 QueryType = Literal["Latest", "Top"]
-JsonObject = Mapping[str, Any]
+JsonValue: TypeAlias = str | int | float | bool | list["JsonValue"] | dict[str, "JsonValue"] | None
+JsonObject: TypeAlias = Mapping[str, JsonValue]
+
+_RunParams = ParamSpec("_RunParams")
+_RunResult = TypeVar("_RunResult", bound=Mapping[str, object] | Coroutine[object, object, Mapping[str, object]])
+
+_decode_json: Callable[[bytes], JsonValue] = json.loads
+
+
+class TweetsResult(TypedDict):
+    """Documents, their tweet links and the pagination state of 1 Xquik page."""
+
+    documents: list[Document]
+    links: list[str]
+    has_more: bool
+    next_cursor: str | None
+
+
+def _tweet_outputs(run: Callable[_RunParams, _RunResult]) -> Callable[_RunParams, _RunResult]:
+    declare: Callable[[Callable[_RunParams, _RunResult]], Callable[_RunParams, _RunResult]] = component.output_types(
+        documents=list[Document], links=list[str], has_more=bool, next_cursor=str | None
+    )
+    return declare(run)
 
 
 @component
@@ -34,7 +57,7 @@ class XquikTweetSearch:
         top_k: int | None = 20,
         query_type: QueryType = "Latest",
         base_url: str = XQUIK_API_URL,
-        extra_params: dict[str, Any] | None = None,
+        extra_params: JsonObject | None = None,
         timeout: int = 10,
         max_retries: int = 3,
     ) -> None:
@@ -64,7 +87,7 @@ class XquikTweetSearch:
         self.timeout = timeout
         self.max_retries = max_retries
 
-    @component.output_types(documents=list[Document], links=list[str], has_more=bool, next_cursor=str | None)
+    @_tweet_outputs
     def run(
         self,
         query: str,
@@ -73,7 +96,7 @@ class XquikTweetSearch:
         cursor: str | None = None,
         since_time: str | None = None,
         until_time: str | None = None,
-    ) -> dict[str, Any]:
+    ) -> TweetsResult:
         """
         Search public tweets.
 
@@ -109,9 +132,9 @@ class XquikTweetSearch:
             timeout=self.timeout,
         )
         response.raise_for_status()
-        return _parse_tweets_response(response.json(), endpoint="x.tweets.search")
+        return _parse_tweets_response(_decode_json(response.content), endpoint="x.tweets.search")
 
-    @component.output_types(documents=list[Document], links=list[str], has_more=bool, next_cursor=str | None)
+    @_tweet_outputs
     async def run_async(
         self,
         query: str,
@@ -120,7 +143,7 @@ class XquikTweetSearch:
         cursor: str | None = None,
         since_time: str | None = None,
         until_time: str | None = None,
-    ) -> dict[str, Any]:
+    ) -> TweetsResult:
         """
         Search public tweets asynchronously.
 
@@ -156,7 +179,7 @@ class XquikTweetSearch:
             timeout=self.timeout,
         )
         response.raise_for_status()
-        return _parse_tweets_response(response.json(), endpoint="x.tweets.search")
+        return _parse_tweets_response(_decode_json(response.content), endpoint="x.tweets.search")
 
     def _build_params(
         self,
@@ -167,7 +190,7 @@ class XquikTweetSearch:
         cursor: str | None,
         since_time: str | None,
         until_time: str | None,
-    ) -> dict[str, Any]:
+    ) -> dict[str, JsonValue]:
         params = _compact(
             {
                 "q": query,
@@ -223,14 +246,14 @@ class XquikUserTweetsFetcher:
         self.timeout = timeout
         self.max_retries = max_retries
 
-    @component.output_types(documents=list[Document], links=list[str], has_more=bool, next_cursor=str | None)
+    @_tweet_outputs
     def run(
         self,
         user_id: str,
         cursor: str | None = None,
         include_replies: bool | None = None,
         include_parent_tweet: bool | None = None,
-    ) -> dict[str, Any]:
+    ) -> TweetsResult:
         """
         Fetch recent public tweets from one user.
 
@@ -259,16 +282,16 @@ class XquikUserTweetsFetcher:
             timeout=self.timeout,
         )
         response.raise_for_status()
-        return _parse_tweets_response(response.json(), endpoint="x.users.tweets")
+        return _parse_tweets_response(_decode_json(response.content), endpoint="x.users.tweets")
 
-    @component.output_types(documents=list[Document], links=list[str], has_more=bool, next_cursor=str | None)
+    @_tweet_outputs
     async def run_async(
         self,
         user_id: str,
         cursor: str | None = None,
         include_replies: bool | None = None,
         include_parent_tweet: bool | None = None,
-    ) -> dict[str, Any]:
+    ) -> TweetsResult:
         """
         Fetch recent public tweets asynchronously.
 
@@ -297,7 +320,7 @@ class XquikUserTweetsFetcher:
             timeout=self.timeout,
         )
         response.raise_for_status()
-        return _parse_tweets_response(response.json(), endpoint="x.users.tweets")
+        return _parse_tweets_response(_decode_json(response.content), endpoint="x.users.tweets")
 
     def _build_params(
         self,
@@ -305,8 +328,8 @@ class XquikUserTweetsFetcher:
         cursor: str | None,
         include_replies: bool | None,
         include_parent_tweet: bool | None,
-    ) -> dict[str, Any]:
-        params: dict[str, Any] = {
+    ) -> dict[str, JsonValue]:
+        params: dict[str, JsonValue] = {
             "includeReplies": self.include_replies if include_replies is None else include_replies,
             "includeParentTweet": self.include_parent_tweet if include_parent_tweet is None else include_parent_tweet,
         }
@@ -316,34 +339,39 @@ class XquikUserTweetsFetcher:
 
 
 def _build_headers(api_key: Secret) -> dict[str, str]:
+    resolve: Callable[[], object] = api_key.resolve_value
+    key = resolve()
     return {
         "Accept": "application/json",
-        "x-api-key": api_key.resolve_value() or "",
+        "x-api-key": key if isinstance(key, str) else "",
         "xquik-api-contract": XQUIK_API_CONTRACT,
     }
 
 
-def _parse_tweets_response(response: JsonObject, endpoint: str) -> dict[str, Any]:
+def _parse_tweets_response(response: JsonValue, endpoint: str) -> TweetsResult:
+    data = response if isinstance(response, dict) else {}
     documents: list[Document] = []
     links: list[str] = []
 
-    tweets = _as_list(_get(response, "tweets", "data", default=[]))
-    for tweet in tweets:
-        if not isinstance(tweet, Mapping):
+    for tweet in _as_list(_get(data, "tweets", "data", default=[])):
+        if not isinstance(tweet, dict):
             continue
-        document = _tweet_to_document(tweet, endpoint=endpoint)
-        documents.append(document)
-        if isinstance(url := document.meta.get("url"), str) and url:
+        meta = _tweet_meta(tweet, endpoint=endpoint)
+        documents.append(Document(content=_tweet_content(tweet), meta=meta))
+        if isinstance(url := meta.get("url"), str) and url:
             links.append(url)
 
-    has_more = bool(_get(response, "has_more", "has_next_page", "hasMore", default=False))
-    next_cursor = _as_optional_string(_get(response, "next_cursor", "nextCursor", default=None))
+    has_more = bool(_get(data, "has_more", "has_next_page", "hasMore", default=False))
+    next_cursor = _as_optional_string(_get(data, "next_cursor", "nextCursor", default=None))
     return {"documents": documents, "links": links, "has_more": has_more, "next_cursor": next_cursor}
 
 
-def _tweet_to_document(tweet: JsonObject, endpoint: str) -> Document:
-    content = _as_optional_string(_get(tweet, "text", "full_text", "content", default="")) or ""
-    meta: dict[str, Any] = {"endpoint": endpoint}
+def _tweet_content(tweet: JsonObject) -> str:
+    return _as_optional_string(_get(tweet, "text", "full_text", "content", default="")) or ""
+
+
+def _tweet_meta(tweet: JsonObject, endpoint: str) -> dict[str, JsonValue]:
+    meta: dict[str, JsonValue] = {"endpoint": endpoint}
     for key, aliases in {
         "id": ("id",),
         "url": ("url",),
@@ -367,7 +395,7 @@ def _tweet_to_document(tweet: JsonObject, endpoint: str) -> Document:
             meta[key] = value
 
     author = _get(tweet, "author", "user", default=None)
-    if isinstance(author, Mapping):
+    if isinstance(author, dict):
         meta["author"] = _compact(
             {
                 "id": _get(author, "id", default=None),
@@ -377,23 +405,23 @@ def _tweet_to_document(tweet: JsonObject, endpoint: str) -> Document:
             }
         )
 
-    return Document(content=content, meta=meta)
+    return meta
 
 
-def _get(data: JsonObject, *keys: str, default: Any) -> Any:
+def _get(data: JsonObject, *keys: str, default: JsonValue) -> JsonValue:
     for key in keys:
         if key in data:
             return data[key]
     return default
 
 
-def _as_list(value: Any) -> list[Any]:
+def _as_list(value: JsonValue) -> list[JsonValue]:
     return value if isinstance(value, list) else []
 
 
-def _as_optional_string(value: Any) -> str | None:
+def _as_optional_string(value: JsonValue) -> str | None:
     return None if value is None else str(value)
 
 
-def _compact(data: dict[str, Any]) -> dict[str, Any]:
+def _compact(data: JsonObject) -> dict[str, JsonValue]:
     return {key: value for key, value in data.items() if value is not None}

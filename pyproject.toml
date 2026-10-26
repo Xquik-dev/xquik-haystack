@@ -66,13 +66,14 @@ installer = "uv"
 dependencies = ["ruff==0.16.3"]
 
 [tool.hatch.envs.default.scripts]
-fmt = "ruff check --fix {args:.} && ruff format {args:.}"
-fmt-check = "ruff check {args:.} && ruff format --check {args:.}"
+fmt = "ruff check --ignore-noqa --fix {args:.} && ruff format {args:.}"
+fmt-check = "ruff check --ignore-noqa {args:.} && ruff format --check {args:.}"
 
 [tool.hatch.envs.test]
-dependencies = ["pip-audit==2.10.1", "pytest==9.1.1", "pytest-asyncio==1.4.0", "pytest-cov==7.1.0"]
+dependencies = ["mypy==2.4.0", "pip-audit==2.10.1", "pytest==9.1.1", "pytest-asyncio==1.4.0", "pytest-cov==7.1.0"]
 
 [tool.hatch.envs.test.scripts]
+types = "mypy {args}"
 unit = 'pytest -m "not integration" {args:tests}'
 integration = 'pytest -m "integration" {args:tests}'
 all = "pytest {args:tests}"
@@ -117,7 +118,6 @@ select = [
   "YTT",
 ]
 ignore = [
-    "ANN401",   # integrations accept provider JSON payloads
     "B008",     # Haystack examples commonly use Secret defaults
     "B027",    # empty method in abstract base class
     "S105",    # possible hardcoded password
@@ -136,25 +136,48 @@ known-first-party = ["haystack_integrations"]
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "parents"
 
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"typing.Any".msg = "Name the real type. Parse JSON and library values into JsonValue or a precise type."
+"typing.cast".msg = "Narrow the value with isinstance or a typed boundary instead of casting it."
+"typing_extensions.Any".msg = "Name the real type. Parse JSON and library values into JsonValue or a precise type."
+"typing_extensions.cast".msg = "Narrow the value with isinstance or a typed boundary instead of casting it."
+
 [tool.ruff.lint.per-file-ignores]
 # Released component signatures accept positional arguments for compatibility.
 "src/haystack_integrations/components/websearch/xquik/xquik_websearch.py" = ["PLR0917"]
 # Tests can use magic values, assertions, and relative imports
-"tests/**/*" = ["D", "PLR2004", "S101", "TID252", "ANN"]
+"tests/**/*" = ["D", "PLR2004", "S101", "TID252"]
 # Script tests run this repository's own scripts with fixed arguments
 "tests/test_*_command.py" = ["S603"]
-# Examples can print their output and don't need type annotations
-"examples/**/*" = ["D", "T201", "ANN"]
+"examples/**/*" = ["D", "T201"]
 
 [tool.mypy]
-install_types = true
-non_interactive = true
-check_untyped_defs = true
-disallow_incomplete_defs = true
-
-[[tool.mypy.overrides]]
-module = ["haystack.*"]
-ignore_missing_imports = true
+files = [".", ".clusterfuzzlite"]
+mypy_path = "src"
+explicit_package_bases = true
+strict = true
+strict_bytes = true
+strict_equality_for_none = true
+warn_unreachable = true
+disallow_any_expr = true
+disallow_any_explicit = true
+disallow_any_decorated = true
+disallow_any_unimported = true
+enable_error_code = [
+    "deprecated",
+    "exhaustive-match",
+    "explicit-override",
+    "ignore-without-code",
+    "mutable-override",
+    "possibly-undefined",
+    "redundant-expr",
+    "redundant-self",
+    "truthy-bool",
+    "truthy-iterable",
+    "unimported-reveal",
+    "unused-awaitable",
+    "unused-ignore",
+]
 
 [tool.coverage.run]
 source = ["haystack_integrations"]

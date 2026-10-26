@@ -1,17 +1,20 @@
 # SPDX-FileCopyrightText: 2026-present Xquik <support@xquik.com>
 # SPDX-License-Identifier: Apache-2.0
 
+from collections.abc import Mapping
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
+import httpx
+import pytest
 from haystack import Document, Pipeline
 from haystack.utils import Secret
 
 from haystack_integrations.components.websearch.xquik import XquikTweetSearch
+from haystack_integrations.components.websearch.xquik.xquik_websearch import JsonValue
 
 EXAMPLE_PATH = Path(__file__).resolve().parents[1] / "examples" / "xquik_tweet_search.py"
 
-FAKE_XQUIK_RESPONSE = {
+FAKE_XQUIK_RESPONSE: JsonValue = {
     "tweets": [
         {
             "id": "555",
@@ -38,12 +41,6 @@ FAKE_XQUIK_RESPONSE = {
 }
 
 
-def _mock_response(payload: dict[str, object]) -> MagicMock:
-    response = MagicMock()
-    response.json.return_value = payload
-    return response
-
-
 def test_example_file_still_documents_pipeline_shape() -> None:
     source = EXAMPLE_PATH.read_text(encoding="utf-8")
     assert "XquikTweetSearch" in source
@@ -51,29 +48,42 @@ def test_example_file_still_documents_pipeline_shape() -> None:
     assert 'query": "haystack ai"' in source
 
 
-def test_tweet_search_example_runs_offline_with_fake_xquik_client() -> None:
+def test_tweet_search_example_runs_offline_with_fake_xquik_client(monkeypatch: pytest.MonkeyPatch) -> None:
     search = XquikTweetSearch(api_key=Secret.from_token("xq_offline"), top_k=10)
     pipeline = Pipeline()
     pipeline.add_component("x_search", search)
+    calls: list[dict[str, object]] = []
 
-    with patch(
-        "haystack_integrations.components.websearch.xquik.xquik_websearch.request_with_retry",
-        return_value=_mock_response(FAKE_XQUIK_RESPONSE),
-    ) as mock_request:
-        result = pipeline.run({"x_search": {"query": "haystack ai"}})
+    def fake_request(**kwargs: object) -> httpx.Response:
+        calls.append(kwargs)
+        return httpx.Response(200, json=FAKE_XQUIK_RESPONSE, request=httpx.Request("GET", "https://xquik.com/api/v1"))
 
-    mock_request.assert_called_once()
-    call_kwargs = mock_request.call_args.kwargs
-    assert call_kwargs["url"].endswith("/x/tweets/search")
-    assert call_kwargs["params"]["q"] == "haystack ai"
-    assert call_kwargs["params"]["limit"] == 10
+    monkeypatch.setattr(
+        "haystack_integrations.components.websearch.xquik.xquik_websearch.request_with_retry", fake_request
+    )
+    inputs: dict[str, dict[str, str]] = {"x_search": {"query": "haystack ai"}}
 
-    documents = result["x_search"]["documents"]
-    assert len(documents) == 1
-    assert isinstance(documents[0], Document)
-    assert documents[0].content == "Haystack mapped this offline tweet to a Document."
-    assert documents[0].meta["id"] == "555"
-    assert documents[0].meta["endpoint"] == "x.tweets.search"
-    assert documents[0].meta["author"]["username"] == "fixture"
+    result: Mapping[str, Mapping[str, object]] = pipeline.run(inputs)
+
+    assert [(call["url"], call["params"]) for call in calls] == [
+        ("https://xquik.com/api/v1/x/tweets/search", {"q": "haystack ai", "queryType": "Latest", "limit": 10})
+    ]
+    meta: dict[str, JsonValue] = {
+        "endpoint": "x.tweets.search",
+        "id": "555",
+        "url": "https://x.com/example/status/555",
+        "created_at": "2026-07-01T12:00:00Z",
+        "lang": "en",
+        "like_count": 1,
+        "retweet_count": 0,
+        "reply_count": 0,
+        "quote_count": 0,
+        "view_count": 10,
+        "bookmark_count": 0,
+        "author": {"id": "9", "username": "fixture", "name": "Fixture", "verified": False},
+    }
+    assert result["x_search"]["documents"] == [
+        Document(content="Haystack mapped this offline tweet to a Document.", meta=meta)
+    ]
     assert result["x_search"]["links"] == ["https://x.com/example/status/555"]
     assert result["x_search"]["has_more"] is False
