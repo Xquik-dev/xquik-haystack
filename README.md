@@ -1,6 +1,7 @@
 # Twitter search & user timeline components for Haystack
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13741/badge)](https://www.bestpractices.dev/projects/13741)
+[![Convex Component](https://www.convex.dev/components/badge/convex-xquik)](https://www.convex.dev/components/convex-xquik)
 
 Search Twitter and fetch public user timelines in Haystack RAG pipelines.
 Each Xquik result becomes a Haystack `Document`.
