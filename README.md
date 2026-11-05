@@ -11,6 +11,27 @@ Xquik charges only for delivered, unique, filter-matching results and never pads
 
 [Read the Xquik Haystack guide](https://docs.xquik.com/guides/haystack).
 
+## Install the Haystack Twitter components
+
+```bash
+pip install xquik-haystack
+```
+
+The package is on [PyPI](https://pypi.org/project/xquik-haystack/).
+
+## Build a Twitter dataset for Twitter RAG
+
+Each post becomes a Haystack `Document` with its text & metadata, ready to embed & store.
+
+```python
+from haystack.utils import Secret
+from haystack_integrations.components.websearch.xquik import XquikTweetSearch
+
+search = XquikTweetSearch(api_key=Secret.from_env_var("XQUIK_API_KEY"), top_k=10)
+
+dataset = search.run(query="haystack ai")["documents"]
+```
+
 <!-- trust:start -->
 
 ## Trust & usage
@@ -63,15 +84,7 @@ Set `base_url` for another Xquik-compatible endpoint. Results include `documents
 
 Use an [Xquik SDK](https://docs.xquik.com/sdks) for follower exports or posting.
 
-## Install
-
-```bash
-pip install xquik-haystack
-```
-
-## Build a Haystack RAG pipeline with Twitter search
-
-### Search posts
+## Search posts in a Haystack pipeline
 
 ```python
 from haystack import Pipeline
@@ -87,7 +100,7 @@ result = pipeline.run({"x_search": {"query": "haystack ai"}})
 documents = result["x_search"]["documents"]
 ```
 
-### Fetch user posts
+## Fetch user posts
 
 ```python
 from haystack.utils import Secret
@@ -140,12 +153,26 @@ PyPI has no trusted publisher for `xquik-haystack`. A maintainer's PyPI token is
 - [Organization security policy](https://github.com/Xquik-dev/.github/blob/main/SECURITY.md)
 - [Contribution guide](https://github.com/Xquik-dev/.github/blob/main/CONTRIBUTING.md)
 
+## Questions
+
+### Do I need an X developer account?
+
+No. Public reads need only an Xquik API key. Private reads & X account actions
+need a connected X account.
+
+### Is this the official X API?
+
+No. Xquik is an independent third-party service with its own REST API. This package
+calls that API, not the official X API.
+
 ## More Xquik tools
 
 - [X (Twitter) scraper API & Twitter MCP server](https://github.com/Xquik-dev/x-twitter-scraper) with REST, MCP & Skill setup.
 - Twitter API SDKs for [TypeScript](https://github.com/Xquik-dev/x-twitter-scraper-typescript), [Python](https://github.com/Xquik-dev/x-twitter-scraper-python), [Go](https://github.com/Xquik-dev/x-twitter-scraper-go), [Ruby](https://github.com/Xquik-dev/x-twitter-scraper-ruby), [Java](https://github.com/Xquik-dev/x-twitter-scraper-java), [Kotlin](https://github.com/Xquik-dev/x-twitter-scraper-kotlin), [C#](https://github.com/Xquik-dev/x-twitter-scraper-csharp) & [PHP](https://github.com/Xquik-dev/x-twitter-scraper-php).
-- [Twitter CLI & X CLI](https://github.com/Xquik-dev/x-twitter-scraper-cli) for terminal workflows.
-- [Twitter advanced search operators](https://github.com/Xquik-dev/x-twitter-advanced-search) with tested examples.
+- [Twitter CLI & X CLI](https://github.com/Xquik-dev/x-twitter-scraper-cli) and [Twitter advanced search operators](https://github.com/Xquik-dev/x-twitter-advanced-search) with tested examples.
+- Twitter agent plugins for [OpenClaw](https://github.com/Xquik-dev/tweetclaw) & [Hermes Agent](https://github.com/Xquik-dev/hermes-tweet), and the [Twitter API documentation source](https://github.com/Xquik-dev/xquik-docs).
+- Twitter integrations for [n8n](https://github.com/Xquik-dev/n8n-nodes-xquik), [Prefect](https://github.com/Xquik-dev/prefect-xquik), [Haystack](https://github.com/Xquik-dev/xquik-haystack), [Paperclip](https://github.com/Xquik-dev/paperclip-plugin-xquik), [Terraform](https://github.com/Xquik-dev/terraform-provider-x-twitter-scraper), [Convex](https://github.com/Xquik-dev/xquik-convex), [Supabase](https://github.com/Xquik-dev/xquik-supabase) & [Strapi](https://github.com/Xquik-dev/strapi-plugin-xquik).
+- Twitter MCP for [AI agents](https://github.com/Xquik-dev/xquik-mcp), [VS Code](https://github.com/Xquik-dev/xquik-vscode) & [Raycast](https://github.com/Xquik-dev/xquik-raycast).
 - [Xquik X API & Twitter scraper](https://xquik.com) and the [Twitter API documentation](https://docs.xquik.com/api-reference/overview).
 
 ## License

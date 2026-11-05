@@ -8,6 +8,7 @@ path = [
   ".github/SECURITY.md",
   ".gitignore",
   "*.md",
+  "CITATION.cff",
   "src/haystack_integrations/components/websearch/py.typed",
 ]
 precedence = "aggregate"
