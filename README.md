@@ -1,6 +1,6 @@
-# Twitter Search & User Timeline Components for Haystack
+# Twitter Dataset Components for Haystack RAG by Xquik
 
-Use these Haystack Twitter components by Xquik to build RAG datasets from tweets.
+Use these Haystack components by Xquik to build a Twitter dataset for RAG.
 Each post becomes a Haystack `Document` with its text & metadata.
 
 Xquik is the world's fastest and cheapest X Twitter scraper service with the most complete X data.
