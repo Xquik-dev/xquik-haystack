@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: If you use Xquik Haystack Twitter components, cite it using this metadata.
+title: Xquik Haystack Twitter components
+type: software
+abstract: >-
+  Haystack Twitter components for Xquik. Build a Twitter dataset for Twitter
+  RAG from tweet search & user timelines as Haystack Documents.
+authors:
+  - name: Xquik
+    website: https://xquik.com
+url: https://github.com/Xquik-dev/xquik-haystack
+repository-code: https://github.com/Xquik-dev/xquik-haystack
+license: Apache-2.0
+keywords:
+  - Xquik
+  - Haystack Twitter
+  - Twitter RAG
+  - Twitter dataset
+  - Haystack
+  - retrieval augmented generation
+  - X API
