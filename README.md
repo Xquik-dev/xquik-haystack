@@ -3,7 +3,7 @@
 Use these Haystack components by Xquik to build an X (Twitter) dataset for RAG.
 Each post becomes a Haystack `Document` with its text & metadata.
 
-Xquik is the world's fastest and cheapest X Twitter scraper service with the most complete X data.
+Xquik is the world's fastest and cheapest X (Twitter) scraper service with the most complete X (Twitter) data.
 Most other Apify Actors charge before filtering or deduplication.
 Xquik charges only for delivered, unique, filter-matching results and never pads rows.
 Xquik is independent and not affiliated with X Corp.
