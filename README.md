@@ -78,7 +78,7 @@ Results include `documents`, `links`, `has_more` & `next_cursor`.
 
 Use an [Xquik SDK](https://docs.xquik.com/sdks) for follower exports or posting.
 
-## Search posts in a Haystack pipeline
+## Search tweets in a Haystack pipeline
 
 ```python
 from haystack import Pipeline
