@@ -15,11 +15,14 @@ requires-python = ">=3.10"
 license = "Apache-2.0"
 keywords = [
     "haystack",
+    "haystack-twitter",
     "xquik",
     "twitter",
     "twitter-search",
     "twitter-api-alternative",
     "rag",
+    "twitter-dataset",
+    "twitter-rag",
     "user-timeline",
 ]
 authors = [
