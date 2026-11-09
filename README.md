@@ -52,10 +52,10 @@ Next, read the [Xquik Haystack guide](https://docs.xquik.com/guides/haystack), t
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13741/badge)](https://www.bestpractices.dev/projects/13741)
 
 - 1,000+ downloads of xquik-haystack on PyPI ([source](https://pypistats.org/packages/xquik-haystack)) <!-- trust:pypi-xquik-haystack 1076 -->
-- 5.1 s p99 REST server read time over 7 days, failures included ([source](https://xquik.com/benchmarks#speed)) <!-- trust:rest-p99 5087 -->
+- 4.9 s p99 REST server read time over 7 days, failures included ([source](https://xquik.com/benchmarks#speed)) <!-- trust:rest-p99 4871 -->
 - This repo meets the OpenSSF Best Practices passing criteria ([source](https://www.bestpractices.dev/projects/13741)) <!-- trust:openssf-xquik-haystack 1 -->
 
-Checked on 2026-11-08. See each number with its date & source on [xquik.com/benchmarks](https://xquik.com/benchmarks) or as [JSON](https://xquik.com/trust.json).
+Checked on 2026-11-09. See each number with its date & source on [xquik.com/benchmarks](https://xquik.com/benchmarks) or as [JSON](https://xquik.com/trust.json).
 
 <!-- trust:end -->
 
