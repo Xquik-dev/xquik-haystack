@@ -55,11 +55,11 @@ Next, read the [Xquik Haystack guide](https://docs.xquik.com/guides/haystack), t
 [![X (Twitter) API p99 server read time](https://img.shields.io/endpoint?url=https%3A%2F%2Fxquik.com%2Fbadges%2Frest-p99.json)](https://xquik.com/benchmarks#speed)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13741/badge)](https://www.bestpractices.dev/projects/13741)
 
-- 950+ downloads of xquik-haystack on PyPI ([source](https://pypistats.org/packages/xquik-haystack)) <!-- trust:pypi-xquik-haystack 959 -->
-- 18.7 s p99 REST server read time over 7 days, failures included ([source](https://xquik.com/benchmarks#speed)) <!-- trust:rest-p99 18658 -->
+- 960+ downloads of xquik-haystack on PyPI ([source](https://pypistats.org/packages/xquik-haystack)) <!-- trust:pypi-xquik-haystack 961 -->
+- 25.3 s p99 REST server read time over 7 days, failures included ([source](https://xquik.com/benchmarks#speed)) <!-- trust:rest-p99 25268 -->
 - This repo meets the OpenSSF Best Practices passing criteria ([source](https://www.bestpractices.dev/projects/13741)) <!-- trust:openssf-xquik-haystack 1 -->
 
-Checked on 2026-11-16. See each number with its date & source on [xquik.com/benchmarks](https://xquik.com/benchmarks) or as [JSON](https://xquik.com/trust.json).
+Checked on 2026-11-23. See each number with its date & source on [xquik.com/benchmarks](https://xquik.com/benchmarks) or as [JSON](https://xquik.com/trust.json).
 
 <!-- trust:end -->
 
